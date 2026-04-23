@@ -1,0 +1,32 @@
+# Notes regarding list: **What's Still Rough**
+
+> I'm an amateur building this for myself. Here's what's not solved yet:
+> 
+> - **Setup requires technical skill.** CLI, Python, launchd, git, Whisper, Telegram bot token, API keys. There's a detailed setup guide but it's not plug-and-play. You will need to tinker.
+> - **macOS only.** Launchd for scheduling, Homebrew for dependencies, Apple Silicon for Whisper GPU acceleration. No Windows or Linux support yet.
+> - **40+ open actions = overwhelm.** The system needs a `/next` that shows THE ONE thing, not everything.
+> - **No completion dopamine.** Marking something done should feel like something. No celebration, no streak, no confetti.
+> - **Stale actions become a wall of shame** instead of auto-dropping after 3 ignored nudges.
+> - **No "I'm overwhelmed" mode.** Can't tell the system "pause everything for 2 hours."
+> - **Morning briefing too text-heavy.** Should be 3 bullets max, not a newspaper.
+> - **Codex integration paused.** Stdin pipe stalls under launchd on macOS — all agents on Claude CLI for now.
+
+## Initial thoughts
+- should support linux at least, windows last if at all
+- installer with prompts would be best
+	- fallback (or companion document) -? extremely well written (CONTENT DESIGN) onboarding guide.  
+	- use AI video generation to create a video onboarding artifact?
+		- same for leading FAQs
+- open actions must be ranked via initial prioritization from the generation of the action, and then dynamically prioritized by direct user action, cron jobs, indirect user action via sweeping mandate, etc. 
+	- Top priority tier tied into a primary "Next" hook that can be configured to show a range of results based on filters set by default or by user. 
+	- When ranking falls below a threshold, visibility toggles off IRT being actively in one's view... and a further threshold when it is permanently archived.
+	- need to think on how metadata from these actions could or should be retained and segmented to it can be included or NOT, in various reporting / dashboards.
+- generate sensory events to trigger completion dopamine!
+	- allow flexibility here to accommodate neurotypes and preferences - people are triggered differently!
+- morning briefing needs configurability
+	- for length
+	- for format
+	- for channel and medium
+	- consider an initial greeting and energy level check that could set up a single day alteration to the normal briefing configuration...         
+		- low energy days (exhaustion)
+		- high energy days (put me in, coach)
