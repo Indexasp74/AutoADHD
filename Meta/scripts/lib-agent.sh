@@ -24,8 +24,27 @@ agent_require_commands() {
     return "$missing"
 }
 
+# Clean-worktree guard. Reports only uncommitted modifications to TRACKED
+# files (its real purpose: stop an agent from clobbering work-in-progress).
+# Untracked files are excluded (--untracked-files=no): agents legitimately
+# generate new notes every run (daily briefing, research articles, AI
+# reflections) and committing each one's pathspec is their own job — a
+# generated untracked note must never block the next agent. The grep still
+# drops tracked-file churn that is expected (obsidian workspace, changelog).
 agent_filtered_worktree_status() {
-    agent_git status --porcelain --untracked-files=normal | grep -vE '^[ MARCUD?!]{2} (\.obsidian/workspace\.json|\.obsidian/graph\.json|Meta/changelog\.md|Inbox/Voice/_drop/.*|Inbox/Voice/_processed/.*|Inbox/Voice/_processing/.*|Inbox/Voice/_extracted/.*|Inbox/Voice/_duplicate/.*|\.agent-locks/.*)$' || true
+    agent_git status --porcelain --untracked-files=no | grep -vE '^[ MARCUD?!]{2} (\.obsidian/workspace\.json|\.obsidian/graph\.json|Meta/changelog\.md|Inbox/Voice/_drop/.*|Inbox/Voice/_processed/.*|Inbox/Voice/_processing/.*|Inbox/Voice/_extracted/.*|Inbox/Voice/_duplicate/.*|\.agent-locks/.*)$' || true
+}
+
+# Record an agent heartbeat: machine-local $HOME/.vault/heartbeats/<name>
+# containing "<epoch> <status>". For runners (e.g. the briefing) that don't go
+# through invoke-agent.sh. Kept out of the vault so it never causes git churn.
+agent_write_heartbeat() {
+    local name status dir
+    name=$(printf '%s' "${1:?heartbeat name required}" | tr '[:upper:]' '[:lower:]')
+    status="${2:-ok}"
+    dir="$HOME/.vault/heartbeats"
+    mkdir -p "$dir" 2>/dev/null || return 0
+    printf '%s %s\n' "$(date +%s)" "$status" > "$dir/$name" 2>/dev/null || true
 }
 
 agent_clear_stale_git_locks() {
@@ -121,8 +140,8 @@ agent_acquire_lock() {
         # Check 2: Is the lock older than max_age_seconds?
         if [ "$should_break" -eq 0 ] && [ -f "$VAULT_AGENT_LOCK_DIR/started_at" ]; then
             local started_at lock_age
-            started_at=$(stat -f %m "$VAULT_AGENT_LOCK_DIR/started_at" 2>/dev/null \
-                      || stat -c %Y "$VAULT_AGENT_LOCK_DIR/started_at" 2>/dev/null \
+            started_at=$(stat -c %Y "$VAULT_AGENT_LOCK_DIR/started_at" 2>/dev/null \
+                      || stat -f %m "$VAULT_AGENT_LOCK_DIR/started_at" 2>/dev/null \
                       || echo 0)
             lock_age=$(( $(date +%s) - started_at ))
             if [ "$lock_age" -gt "$max_age_seconds" ]; then

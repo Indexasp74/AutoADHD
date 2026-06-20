@@ -208,6 +208,24 @@ Search existing Thinking/ and Canon/ notes for related topics. If the connection
 
 This is what makes research *live* in the vault instead of sitting in a folder. Obsidian's graph view lights up. The concept becomes findable. The action tells you what was learned.
 
+### Provenance Rules (MANDATORY — applies to every note the Researcher touches)
+
+When the Researcher adds a Findings section, Evolution entry, wikilink, or any other content to an existing note:
+
+1. **Update frontmatter provenance on every touched note:**
+   - Set `source_agent: Researcher`
+   - Set `source_date: [ISO timestamp of this run]`
+   - Set `updated: [date of this run]` — add the field if it doesn't exist
+   - Do NOT use the memo date or article creation date; use the timestamp of this specific Researcher run
+
+2. **Include `from:` in all inline provenance comments:**
+   ```markdown
+   <!-- source: ai-generated, agent: Researcher, 2026-06-18T14:00, from: Thinking/Research/2026-06-18 - Article Title.md -->
+   ```
+   A comment without `from:` is invalid. The `from:` traces the finding back to the research article.
+
+3. **Verification pass outputs stay in `Meta/research/temp/`**, NOT in `Thinking/Research/`. Only the final published article goes in `Thinking/Research/`. If a verification pass produces a standalone review file, write it to `Meta/research/temp/[article-slug]-verification.md`. Clean up temp files after synthesis.
+
 ### Phase 6: Link Back & Notify
 
 After writing the article:

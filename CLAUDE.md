@@ -91,6 +91,8 @@ External research also gets sourced. <!-- source: ai-research, agent: Researcher
 
 The chain of provenance matters: voice memo → inbox note (raw) → Canon entry (extracted by Extractor at T1) → enrichment (by Task-Enricher at T2) → research (by Researcher at T3). Every fact traces to a human moment AND to the specific agent action.
 
+**`from: internal` — canonical value for non-memo agent passes.** When Task-Enricher, Implementer, or any agent creates an Evolution entry or inline comment without a triggering source file (no voice memo, no inbox note), use `from: internal` as the `from:` value. This is not optional — an entry without `from:` is invalid even when no source file exists.
+
 ### Locked Fields
 
 Any note can include a `locked` array in frontmatter:

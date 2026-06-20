@@ -24,7 +24,9 @@ DROP_DIR="$VAULT_DIR/Inbox/Voice/_drop"
 PROCESSING_DIR="$VAULT_DIR/Inbox/Voice/_processing"
 PROCESSED_DIR="$VAULT_DIR/Inbox/Voice/_processed"
 WHISPER_MODEL="${WHISPER_MODEL:-medium}"
-WHISPER_LANG="${WHISPER_LANG:-de}"
+# Accept WHISPER_LANGUAGE (the name used in .env / .env.example); fall back to
+# the legacy WHISPER_LANG, then default to English.
+WHISPER_LANG="${WHISPER_LANG:-${WHISPER_LANGUAGE:-en}}"
 
 # --- Input ---
 AUDIO_FILE="$1"

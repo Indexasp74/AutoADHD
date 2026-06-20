@@ -2,7 +2,7 @@
 type: hub
 name: Home
 pinned: true
-updated: 2026-03-27
+updated: 2026-06-20
 ---
 
 # 🏠 Home
@@ -148,12 +148,13 @@ LIMIT 5
 
 ## Hubs
 
+These are system hubs the agents build up as you use the vault. The links
+stay unresolved (greyed in Obsidian) until the first note of each kind lands.
+
 | Hub | What it covers |
 |---|---|
 | **[[Sprint Board]]** | What's being built. Active tasks, backlog, proposals from any agent |
 | **[[Timeline]]** | Everything that happened, reverse chronological |
-| **[[Strategy Tool Startup]]** | The company. Moyo, ICP, competitors, prototype, YC |
-| **[[Usman Kotwal]]** | You. Family, career, addresses, relationships |
 | **[[Weekly Mirror]]** | Your patterns, growth edges, belief-action alignment (Mirror agent) |
 
 ---

@@ -59,6 +59,7 @@ Quality control. Check extraction completeness and vault integrity. If there are
    - Every AI-touched note in the current pass must also carry note-level `source_agent` and `source_date`, even when the file pre-existed and its `source` remains `human` or an older `ai-*` value
    - Recently extracted inbox notes count too, even when the extraction was a no-op and all eight extracted lines are `none`
    - Inline provenance comments are incomplete unless they include both `agent:` and a timestamp; `<!-- source: ai-extracted, from: ... -->` is still a failure
+   - **Evolution section provenance**: Provenance comments inside `## Evolution` sections must follow the same format — `from:` field is REQUIRED. `<!-- source: ai-extracted, agent: Extractor, 2026-02-01T08:00 -->` without `from:` is invalid even when it appears inside an Evolution block rather than the note body.
    - If those fields are missing and the exact timestamp is not recoverable from the evidence in the note, flag it instead of guessing
 
 8. **Orphan Detection**: Find Canon entries with no incoming or outgoing wikilinks

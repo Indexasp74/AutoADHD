@@ -10,18 +10,35 @@
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 
-# Voice pipeline working directories
-Inbox/Voice/_drop/*.ogg
-Inbox/Voice/_drop/*.m4a
+# Voice pipeline working dirs + audio (transient binary — the transcript
+# note preserves the content; audio is never committed)
 Inbox/Voice/_processing/
+Inbox/Voice/**/*.ogg
+Inbox/Voice/**/*.m4a
+Inbox/Voice/**/*.mp3
+Inbox/Voice/**/*.wav
+Inbox/Voice/**/*.mp4
+Inbox/Voice/**/*.webm
 
 # Agent locks and temp files
 Meta/.voice-progress/
 Meta/scripts/*.lock
 *.lock
 
-# Token usage logs (personal)
+# Research staging files — perspective outputs, draft answers, staging notes;
+# these are transient working files, never committed (articles land in Thinking/Research/).
+Meta/research/
+
+# Generated runtime artifacts — agents write these outside their content
+# commits, so leaving them tracked makes the worktree dirty and trips the
+# agents' clean-worktree guard, blocking every subsequent agent.
 Meta/agent-token-usage.jsonl
+Meta/agent-feedback.jsonl
+Meta/decisions-summary.md
+
+# Daily briefing notes — regenerated every morning, read locally in
+# Obsidian; the briefing agent only commits the changelog, not these.
+Inbox/* - Daily Briefing.md
 
 # Python
 __pycache__/
@@ -36,3 +53,24 @@ node_modules/
 *.bak
 *.tmp
 *~
+
+# Editor swap files (vim/etc) — must never block the agent clean-worktree check
+*.swp
+*.swo
+*.swn
+
+# === Vault CONTENT — personal, never pushed (ship the system, bring your vault) ===
+# While ignored, agents won't git-commit notes; they still write to disk + Obsidian.
+# Canon/README.md ships (structure doc); other note dirs are ignored wholesale
+# (the scripts recreate the folder skeleton at runtime).
+/Canon/*
+!/Canon/README.md
+/Inbox/
+/Thinking/
+/Articles/
+/Meta/AI-Reflections/
+/Meta/review-queue/
+/Meta/sprint/
+/Meta/operations/
+/Meta/changelog.md
+/Meta/MANIFEST.md

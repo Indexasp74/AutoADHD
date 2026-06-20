@@ -260,10 +260,70 @@ Rules for this block:
 Before you save the inbox note as `status: extracted`, do this exact self-check:
 1. The inbox note itself has `source_agent: Extractor` and `source_date: [ISO timestamp]`, even if this was a no-op test note or garbled-audio note.
 2. Every new note created in this pass has `source: ai-extracted`, `source_agent: Extractor`, and `source_date: [ISO timestamp]`.
-3. Every existing note materially updated in this pass has a fresh inline provenance comment with `agent: Extractor`, the timestamp, and the source filename.
+3. Every existing note materially updated in this pass has a fresh inline provenance comment with `agent: Extractor`, the timestamp, and the source filename. The `from:` field is REQUIRED — `<!-- source: ai-extracted, agent: Extractor, 2026-01-25T20:15 -->` is INVALID without `from: [filename]`.
 4. Every materially changed note that already carries `updated:` or `status:` frontmatter still has those fields aligned with the new content.
 5. The `## Extracted` block has all eight labels in the required order and each line contains wikilinks or the literal word `none`.
 6. The notes listed in the block are only the notes you actually created or materially updated in this pass, and each listed note can be defended with same-pass evidence on that note itself.
 7. If any item above is false, the extraction is not complete yet. Fix it before leaving the note in `status: extracted`.
+8. Every action `owner` field is set to `"[[Usman Kotwal]]"` unless the transcript names a different responsible person. `owner: "[[You]]"` is NEVER valid — `[[You]]` does not resolve to any Canon note.
 
 **This has been flagged as missing in 9 consecutive Reviewer passes (2026-03-19 through 2026-03-21). It must be implemented.**
+
+## KNOWN VIOLATION PATTERNS (study these — do not repeat them)
+
+These are the most common schema failures found in past extraction passes. All of them are invalid.
+
+### ❌ Wrong: Free-form Extracted block
+```markdown
+## Extracted
+
+**Entities created/updated:**
+- Updated: [[Alex Chen]] — prototype progress noted
+- Updated: [[Build MVP Prototype]] — pipeline works
+```
+This invents the `Updated:` label, mixes narrative with schema, and cannot be parsed.
+
+### ✅ Right: Standard 8-line schema
+```markdown
+## Extracted
+
+- People: [[Alex Chen]], [[Sam Rivera]]
+- Events: none
+- Concepts: none
+- Actions: [[Build MVP Prototype]], [[Set Up Home Office]]
+- Decisions: none
+- Places: none
+- Organizations: none
+- Thinking: [[Thinking About Focus]]
+```
+
+### ❌ Wrong: Provenance without `from:` field
+```markdown
+<!-- source: ai-extracted, agent: Extractor, 2026-01-25T20:15 -->
+```
+
+### ✅ Right: Complete provenance comment
+```markdown
+<!-- source: ai-extracted, agent: Extractor, 2026-01-25T20:15, from: 2026-01-25 - Voice - evening-rant.md -->
+```
+
+### ❌ Wrong: Evolution entry for non-memo agent pass — missing `from:`
+```markdown
+- 2026-02-01 — Sub-steps added. <!-- source: ai-enriched, agent: Task-Enricher, 2026-02-01T08:30 -->
+```
+
+### ✅ Right: Use `from: internal` when there is no source file
+```markdown
+- 2026-02-01 — Sub-steps added. <!-- source: ai-enriched, agent: Task-Enricher, 2026-02-01T08:30, from: internal -->
+```
+`from: internal` is the canonical value for Task-Enricher, Implementer, Mirror, or any agent that acts without a triggering voice memo or inbox note. A missing `from:` is always invalid — `from: internal` is the fallback, not an exception.
+
+### ❌ Wrong: `[[You]]` as action owner
+```yaml
+owner: "[[You]]"
+```
+
+### ✅ Right: Named vault entity as owner
+```yaml
+owner: "[[Usman Kotwal]]"
+```

@@ -71,7 +71,7 @@ SESSION_FILE="$SESSION_DIR/${DATE}-${SESSION_ID}.md"
 # Check session expiry (30 min inactivity)
 SESSION_CONTEXT=""
 if [[ -f "$SESSION_FILE" ]]; then
-    LAST_MOD=$(stat -f %m "$SESSION_FILE" 2>/dev/null || stat -c %Y "$SESSION_FILE" 2>/dev/null || echo 0)
+    LAST_MOD=$(stat -c %Y "$SESSION_FILE" 2>/dev/null || stat -f %m "$SESSION_FILE" 2>/dev/null || echo 0)
     NOW=$(date +%s)
     AGE=$(( NOW - LAST_MOD ))
     if [[ $AGE -gt 1800 ]]; then

@@ -145,6 +145,8 @@ status: pending  # pending | approved | rejected
 4. **Always run build-manifest.sh after making Canon changes.** Keep the manifest in sync.
 5. **Always commit with clear messages.** Format: `[Implementer] fix: [what was fixed]` or `[Implementer] add: [what was added]`
 6. **If a finding has been flagged 3+ times across retros and is still Tier 3, escalate urgency to HIGH.** Send a Telegram message even if it was already queued. Persistent unfixed items are a system failure.
+7. **`source_date` and `updated` must reflect THIS run's timestamp.** When touching an existing note — adding a Mention, fixing a field, correcting provenance — set `source_date` to the current Implementer run time (e.g. `2026-06-16T13:53`) and `updated` to today's date (e.g. `2026-06-16`). NEVER use the original memo date or the creation date. The rule: `source_date` records when an agent last acted on the note, not when the source memo was recorded.
+8. **Pre-commit deletion check: scan Inbox/ and Canon/ for unintended deletions.** Before committing, verify that no Inbox/ or Canon/ files are missing from the working tree unless their deletion was explicitly listed as a finding to fix (raw transcript archival is Tier 3 — never delete unless a human approved it). If a file is missing unexpectedly, recover it via `git checkout HEAD -- <path>` and note it in the Implementer log.
 
 ---
 

@@ -82,13 +82,13 @@ OPS_EXECUTING_DIR = os.path.join(VAULT_DIR, "Meta", "operations", "executing")
 OPS_COMPLETED_DIR = os.path.join(VAULT_DIR, "Meta", "operations", "completed")
 
 # Token: env var > file > fail
-TOKEN = os.environ.get("VAULT_BOT_TOKEN", "")
+TOKEN = os.environ.get("VAULT_BOT_TOKEN", "") or os.environ.get("TELEGRAM_BOT_TOKEN", "")
 if not TOKEN:
     token_file = os.path.expanduser("~/.vault-bot-token")
     if os.path.exists(token_file):
         TOKEN = open(token_file).read().strip()
 if not TOKEN:
-    print("No token found. Set VAULT_BOT_TOKEN or create ~/.vault-bot-token")
+    print("No token found. Set VAULT_BOT_TOKEN or TELEGRAM_BOT_TOKEN, or create ~/.vault-bot-token")
     sys.exit(1)
 
 # Your Telegram user ID (set after first /start, or set manually)

@@ -21,7 +21,7 @@ check_agent() {
 
     if [ -f "$full_path" ]; then
         local mtime
-        mtime=$(stat -f %m "$full_path" 2>/dev/null || stat -c %Y "$full_path" 2>/dev/null || echo 0)
+        mtime=$(stat -c %Y "$full_path" 2>/dev/null || stat -f %m "$full_path" 2>/dev/null || echo 0)
         local age=$(( NOW - mtime ))
         if [ "$age" -gt "$max_seconds" ]; then
             local hours_ago=$(( age / 3600 ))
@@ -35,7 +35,7 @@ check_agent() {
         for f in "$full_path"/*.md; do
             [ -f "$f" ] || continue
             local mt
-            mt=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
+            mt=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f" 2>/dev/null || echo 0)
             if [ "$mt" -gt "$newest_mtime" ]; then
                 newest_mtime=$mt
             fi
@@ -84,6 +84,27 @@ check_heartbeat_file() {
     fi
 }
 
+# Triggered agents run on demand (new memo, /run, after-extraction) — absence
+# is NOT a problem. Report last-run for visibility; never emit a ❌ alarm.
+check_heartbeat_triggered() {
+    local agent="$1"
+    local heartbeat_name="$2"
+    local heartbeat_path="$HOME/.vault/heartbeats/$heartbeat_name"
+
+    if [ ! -f "$heartbeat_path" ]; then
+        echo "➖ ${agent}: triggered-only — not run yet"
+        return
+    fi
+    local last_ts
+    last_ts=$(tr -dc '0-9' < "$heartbeat_path" 2>/dev/null || true)
+    if [ -z "$last_ts" ]; then
+        echo "➖ ${agent}: triggered-only — no timestamp"
+        return
+    fi
+    local hours_ago=$(( (NOW - last_ts) / 3600 ))
+    echo "ℹ️ ${agent}: triggered-only — last ran ${hours_ago}h ago"
+}
+
 # Sprint task health
 check_sprint_stalls() {
     local active_dir="$VAULT_DIR/Meta/sprint/active"
@@ -99,7 +120,7 @@ check_sprint_stalls() {
         status=$(grep -m1 '^status:' "$f" | sed 's/status:[[:space:]]*//' || echo "?")
 
         local mtime
-        mtime=$(stat -f %m "$f" 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo 0)
+        mtime=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f" 2>/dev/null || echo 0)
         local age=$(( NOW - mtime ))
         local stale_seconds=$((72 * 3600))
 
@@ -148,7 +169,7 @@ check_implementer() {
         echo "❌ Implementer: log exists but has 0 entries — never successfully ran"
     else
         local mtime
-        mtime=$(stat -f %m "$log" 2>/dev/null || stat -c %Y "$log" 2>/dev/null || echo 0)
+        mtime=$(stat -c %Y "$log" 2>/dev/null || stat -f %m "$log" 2>/dev/null || echo 0)
         local age=$(( NOW - mtime ))
         local hours_ago=$(( age / 3600 ))
         echo "✅ Implementer: ${entries} runs, last ${hours_ago}h ago"
@@ -185,7 +206,7 @@ check_stale_locks() {
         # Check age
         if [ "$is_stale" -eq 0 ] && [ -f "$lock_dir/started_at" ]; then
             local mtime
-            mtime=$(stat -f %m "$lock_dir/started_at" 2>/dev/null || stat -c %Y "$lock_dir/started_at" 2>/dev/null || echo 0)
+            mtime=$(stat -c %Y "$lock_dir/started_at" 2>/dev/null || stat -f %m "$lock_dir/started_at" 2>/dev/null || echo 0)
             local age=$(( NOW - mtime ))
             if [ "$age" -gt "$max_age" ]; then
                 local mins=$(( age / 60 ))
@@ -203,15 +224,22 @@ check_stale_locks() {
 }
 
 echo "=== Agent Heartbeat ==="
-# Agent checks: name, max_hours, evidence_path
-check_agent "Extractor"      48   "Meta/AI-Reflections/review-log.md"
-check_agent "Retrospective"  26   "Meta/AI-Reflections/retro-log.md"
-check_agent "Briefing"       26   "Inbox"
-check_agent "Thinker"       170   "Meta/AI-Reflections"
-check_heartbeat_file "Advisor"        48  "advisor"
-check_heartbeat_file "Task-Enricher"  48  "task-enricher"
-check_heartbeat_file "Mirror"        170  "mirror"
-check_implementer
+# Scheduled agents — alarm (❌) if no heartbeat within the window.
+check_heartbeat_file "Briefing"       26   "briefing"
+check_heartbeat_file "Retrospective"  26   "retrospective"
+check_heartbeat_file "Task-Enricher"  26   "task-enricher"
+check_heartbeat_file "Thinker"       170   "thinker"
+# Triggered / on-demand agents — informational only (absence is fine).
+# Mirror is currently DISABLED (removed from weekly-maintenance.sh 2026-04-07),
+# so it's monitored as info-only to avoid a false alarm. To re-enable: add
+# run-mirror.sh to weekly-maintenance.sh and move Mirror back to the scheduled
+# block above (170h).
+check_heartbeat_triggered "Mirror"       "mirror"
+check_heartbeat_triggered "Extractor"    "extractor"
+check_heartbeat_triggered "Reviewer"     "reviewer"
+check_heartbeat_triggered "Researcher"   "researcher"
+check_heartbeat_triggered "Implementer"  "implementer"
+check_heartbeat_triggered "Advisor"      "advisor"
 
 echo ""
 echo "=== Sprint Tasks ==="

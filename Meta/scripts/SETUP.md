@@ -448,9 +448,9 @@ The telegram bot shows a PID (always-on). Other agents show `-` (scheduled, not 
 ### Step 7: Configure Whisper
 
 ```bash
-WHISPER_MODEL=medium   # Options: tiny, base, small, medium, large
-WHISPER_LANG=de        # Primary language of voice memos
-WHISPER_DEVICE=mps     # Apple Silicon GPU (1.5-3x faster). Options: mps, cpu
+WHISPER_MODEL=medium       # Options: tiny, base, small, medium, large
+WHISPER_LANGUAGE=en        # Primary language of voice memos (en, de, es, fr, ...)
+WHISPER_DEVICE=cuda        # NVIDIA GPU (WSL). Options: cuda, mps (Apple Silicon), cpu
 ```
 
 These are set in `process-voice-memo.sh`.

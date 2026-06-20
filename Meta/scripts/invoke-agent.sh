@@ -22,7 +22,7 @@ TOKEN_LOG="$VAULT_DIR/Meta/agent-token-usage.jsonl"
 
 # Log token usage after each agent call
 _log_tokens() {
-    local agent_name="$1" runtime="$2" json_output="$3"
+    local agent_name="$1" runtime="$2" json_output="$3" model="${4:-default}"
     python3 -c "
 import json, sys, datetime
 try:
@@ -32,6 +32,7 @@ try:
         'ts': datetime.datetime.now().isoformat()[:19],
         'agent': sys.argv[1],
         'runtime': sys.argv[2],
+        'model': sys.argv[5],
         'input_tokens': usage.get('input_tokens', 0),
         'output_tokens': usage.get('output_tokens', 0),
         'cache_creation': usage.get('cache_creation_input_tokens', 0),
@@ -44,7 +45,19 @@ try:
         f.write(json.dumps(entry) + '\n')
 except Exception:
     pass  # never fail the agent for logging
-" "$agent_name" "$runtime" "$json_output" "$TOKEN_LOG" 2>/dev/null || true
+" "$agent_name" "$runtime" "$json_output" "$TOKEN_LOG" "$model" 2>/dev/null || true
+}
+
+# Record an agent heartbeat: machine-local file ($HOME/.vault/heartbeats/<name>)
+# containing "<epoch> ok". Read by heartbeat-check.sh / the briefing to surface
+# stale scheduled agents. Name is lowercased so MIRROR/ADVISOR/etc. line up.
+# Kept out of the vault on purpose — heartbeats must not cause git churn.
+_write_heartbeat() {
+    local name dir
+    name=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+    dir="$HOME/.vault/heartbeats"
+    mkdir -p "$dir" 2>/dev/null || return 0
+    printf '%s ok\n' "$(date +%s)" > "$dir/$name" 2>/dev/null || true
 }
 CODEX_BIN="${CODEX_BIN:-/Applications/Codex.app/Contents/Resources/codex}"
 # Resolve claude binary: check PATH first, then find the versioned install location
@@ -160,7 +173,8 @@ with open(sys.argv[1]) as f:
     d = json.load(f)
 print(d.get('result', ''))
 " "$tmp_json" 2>/dev/null) || text_result="$s1_output"
-                _log_tokens "$AGENT_NAME" "claude" "$s1_output"
+                _log_tokens "$AGENT_NAME" "claude" "$s1_output" "${model_id:-default}"
+                _write_heartbeat "$AGENT_NAME"
                 rm -f "$tmp_json"
                 printf '%s\n' "$text_result"
                 return 0

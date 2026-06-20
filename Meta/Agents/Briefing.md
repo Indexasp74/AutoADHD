@@ -24,6 +24,7 @@ A note in `Inbox/[DATE] - Daily Briefing.md` — structured as a newspaper front
 - Review queue items from `Meta/review-queue/` — what needs your call
 - Sprint proposals awaiting decision from `Meta/sprint/proposals/`
 - Failed voice notes in `Inbox/Voice/` and stale agent heartbeats — treat both as operational blockers, not background telemetry
+- **Overdue actions gone silent**: Any action where `due` is more than 30 days in the past AND there is no Evolution entry dated within the last 14 days. These have been sitting without any activity signal. Format: `🔴 OVERDUE [N days] — no progress in 14+ days: [[Action Name]] (due: DATE)`. Do not soften. The action is either truly stuck or it's done and the vault doesn't know it — either way, Usman must act.
 - Standing priority items (see below)
 
 ### Tier ✨ — What's New (last 24h)

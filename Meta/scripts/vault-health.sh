@@ -32,8 +32,11 @@ print_fail() {
     FAILURES=$((FAILURES + 1))
 }
 
+# Process-based checks (WSL/Linux + macOS portable). The daemons are kept
+# alive by ensure-daemons.sh via cron, not launchd, so check the actual
+# process rather than a launchctl job.
 check_telegram_bot() {
-    if launchctl print "gui/$UID_VALUE/com.vault.telegram-bot" 2>/dev/null | grep -q "state = running"; then
+    if pgrep -f "vault-bot.py" >/dev/null 2>&1; then
         print_ok "Telegram bot process alive"
     else
         print_fail "Telegram bot process not running"
@@ -41,10 +44,10 @@ check_telegram_bot() {
 }
 
 check_voice_watcher() {
-    if launchctl print "gui/$UID_VALUE/com.vault.voice-watcher" >/dev/null 2>&1; then
-        print_ok "Voice watcher launchd job loaded"
+    if pgrep -f "watch-voice-drop.sh" >/dev/null 2>&1; then
+        print_ok "Voice watcher process alive"
     else
-        print_fail "Voice watcher launchd job not loaded"
+        print_fail "Voice watcher process not running"
     fi
 }
 

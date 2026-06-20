@@ -24,7 +24,12 @@ source "$SCRIPT_DIR/lib-agent.sh"
 DATE=$(date +%Y-%m-%d)
 DAY_NAME=$(date +%A)
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-BRIEFING_PATH="$VAULT_DIR/Inbox/${DATE} - Daily Briefing.md"
+# Where the human-facing briefing note is written. Set OBSIDIAN_INBOX in .env
+# to deliver into your real Obsidian vault (e.g. a Google-Drive-synced path);
+# defaults to the working vault's Inbox so behaviour is unchanged if unset.
+BRIEFING_OUTPUT_DIR="${OBSIDIAN_INBOX:-$VAULT_DIR/Inbox}"
+mkdir -p "$BRIEFING_OUTPUT_DIR" 2>/dev/null || true
+BRIEFING_PATH="$BRIEFING_OUTPUT_DIR/${DATE} - Daily Briefing.md"
 
 echo "[$TIMESTAMP] Building daily briefing..."
 
@@ -61,7 +66,7 @@ def read_frontmatter(filepath):
             fm_text = content[3:end].strip()
             fm = {}
             for line in fm_text.split('\n'):
-                if ':' in line and not line.strip().startswith('-'):
+                if ':' in line and not line.strip().startswith('-') and not line.startswith(' ') and not line.startswith('\t'):
                     key, val = line.split(':', 1)
                     fm[key.strip()] = val.strip().strip('"').strip("'")
                 elif line.strip().startswith('-') and fm:
@@ -130,6 +135,8 @@ def summarize_system_lines(raw_status, limit=5):
 
 cutoff_24h = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 cutoff_7d = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+cutoff_30d = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+cutoff_14d = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
 
 # --- TIER 1: 🔴 Needs You ---
 pending_ops = []
@@ -188,14 +195,17 @@ for search_dir in ['Canon', 'Thinking', os.path.join('Meta', 'AI-Reflections')]:
     full_dir = os.path.join(vault, search_dir)
     if not os.path.exists(full_dir):
         continue
+    ai_reflections_dir = 'AI-Reflections' in search_dir
     for root, dirs, files in os.walk(full_dir):
         for f in files:
             if not f.endswith('.md'):
                 continue
             fm = read_frontmatter(os.path.join(root, f))
+            note_type = fm.get('type', 'unknown')
+            if ai_reflections_dir and note_type != 'ai-reflection':
+                continue
             created = fm.get('created', fm.get('first_mentioned', ''))
             if created and created >= cutoff_24h:
-                note_type = fm.get('type', 'unknown')
                 name = fm.get('name', f[:-3])
                 source = fm.get('source', '')
                 emoji = EMOJI.get(note_type, "📝")
@@ -270,6 +280,7 @@ actions_dir = os.path.join(vault, 'Canon', 'Actions')
 open_actions = []
 incomplete_actions = []
 stale_actions = []
+overdue_escalations = []
 
 if os.path.exists(actions_dir):
     for f in sorted(os.listdir(actions_dir)):
@@ -304,6 +315,22 @@ if os.path.exists(actions_dir):
         if isinstance(mentions, list) and len(mentions) > 1:
             stale_actions.append((name, len(mentions)))
 
+        # Overdue escalation: due > 30 days ago AND no Evolution entry in 14 days → Tier 🔴
+        if due and due < cutoff_30d and status in ('open', 'in-progress'):
+            try:
+                with open(os.path.join(actions_dir, f)) as fh:
+                    content = fh.read()
+                evo_dates = re.findall(r'^- (\d{4}-\d{2}-\d{2})\b', content, re.MULTILINE)
+                last_evo = max(evo_dates) if evo_dates else ''
+            except Exception:
+                last_evo = ''
+            if not last_evo or last_evo < cutoff_14d:
+                days_overdue = (datetime.now() - datetime.strptime(due, '%Y-%m-%d')).days
+                stale_str = (f"{(datetime.now() - datetime.strptime(last_evo, '%Y-%m-%d')).days}d"
+                             if last_evo else "never")
+                overdue_escalations.append(
+                    f"🔴 OVERDUE {days_overdue} days — no progress in 14+ days: [[{name}]] (due: {due})")
+
 # Sort: high priority first, then by due date
 prio_order = {'high': 0, 'medium': 1, 'low': 2}
 open_actions.sort(key=lambda a: (prio_order.get(a['priority'], 1), a['due'] or 'zzzz'))
@@ -320,7 +347,7 @@ lines.append(f"# ☀️ Daily Briefing — {day_name}, {date}")
 lines.append("")
 
 # 🔴 Needs You
-needs_you = pending_ops + review_items + proposals
+needs_you = pending_ops + review_items + proposals + overdue_escalations
 if standing_priority_lines or needs_you:
     lines.append("## 🔴 Needs You")
     lines.append("")
@@ -422,7 +449,7 @@ with open(briefing_path, 'w') as f:
     f.write('\n'.join(lines))
 
 total_lines = len(lines)
-needs_you_count = standing_priority_count + len(pending_ops) + len(review_items) + len(proposals)
+needs_you_count = standing_priority_count + len(pending_ops) + len(review_items) + len(proposals) + len(overdue_escalations)
 
 print(f"Briefing written: {os.path.basename(briefing_path)} ({total_lines} lines)")
 print(f"  🔴 Needs You: {needs_you_count}")
@@ -542,6 +569,32 @@ if os.path.exists(moyo_path):
     with open(moyo_path) as fh:
         if 'status: occurred-outcome-unknown' in fh.read() and not moyo_resolution_logged(vault):
             count += 1
+# Count overdue escalations (due > 30 days ago AND no Evolution in 14 days)
+import re as _re
+from datetime import datetime as _dt, timedelta as _td
+_cutoff_30d = (_dt.now() - _td(days=30)).strftime("%Y-%m-%d")
+_cutoff_14d = (_dt.now() - _td(days=14)).strftime("%Y-%m-%d")
+_actions_dir = os.path.join(vault, 'Canon', 'Actions')
+if os.path.exists(_actions_dir):
+    for _f in os.listdir(_actions_dir):
+        if not _f.endswith('.md'):
+            continue
+        _fm = read_frontmatter(os.path.join(_actions_dir, _f))
+        if _fm.get('type') != 'action':
+            continue
+        _status = _fm.get('status', '')
+        _due = _fm.get('due', '')
+        if _status not in ('open', 'in-progress') or not _due or _due >= _cutoff_30d:
+            continue
+        try:
+            with open(os.path.join(_actions_dir, _f)) as _fh:
+                _content = _fh.read()
+            _evo_dates = _re.findall(r'^- (\d{4}-\d{2}-\d{2})\b', _content, _re.MULTILINE)
+            _last_evo = max(_evo_dates) if _evo_dates else ''
+        except Exception:
+            _last_evo = ''
+        if not _last_evo or _last_evo < _cutoff_14d:
+            count += 1
 print(count)
 NYEOF
 ) || NEEDS_YOU="0"
@@ -568,7 +621,7 @@ fi
 LAST_VOICE_AGE=""
 LAST_PROCESSED=$(find "$VAULT_DIR/Inbox/Voice/_processed" -name "*.ogg" -o -name "*.m4a" 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
 if [ -n "$LAST_PROCESSED" ]; then
-    LAST_VOICE_SECS=$(( $(date +%s) - $(stat -f %m "$LAST_PROCESSED" 2>/dev/null || echo "0") ))
+    LAST_VOICE_SECS=$(( $(date +%s) - $(stat -c %Y "$LAST_PROCESSED" 2>/dev/null || stat -f %m "$LAST_PROCESSED" 2>/dev/null || echo "0") ))
     if [ "$LAST_VOICE_SECS" -lt 3600 ]; then
         LAST_VOICE_AGE="<1h ago"
     elif [ "$LAST_VOICE_SECS" -lt 86400 ]; then
@@ -703,4 +756,5 @@ agent_commit_changelog_if_needed "[Briefing] log: changelog update [$TIMESTAMP]"
 
 "$SCRIPT_DIR/log-agent-feedback.sh" "Briefing" "briefing_sent" "Daily briefing: ${NEEDS_YOU} needs-you, ${OPEN_COUNT} open actions" "" "" "false" 2>/dev/null || true
 
+agent_write_heartbeat "briefing"
 echo "[$TIMESTAMP] Daily briefing complete."

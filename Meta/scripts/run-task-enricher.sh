@@ -764,7 +764,7 @@ $parent_context
                 local pending_file="$VAULT_DIR/Meta/decomposer/pending-input/${slug}.md"
                 if [ -f "$pending_file" ]; then
                     local created_epoch days_pending
-                    created_epoch=$(stat -f %m "$pending_file" 2>/dev/null || stat -c %Y "$pending_file" 2>/dev/null || echo "0")
+                    created_epoch=$(stat -c %Y "$pending_file" 2>/dev/null || stat -f %m "$pending_file" 2>/dev/null || echo "0")
                     days_pending=$(( ($(date +%s) - created_epoch) / 86400 ))
                     if [ "$days_pending" -ge 7 ]; then
                         echo "  Skipping stuck input (${days_pending} days): $sname"

@@ -121,6 +121,19 @@ if [ "$INVOKE_EXIT" -ne 0 ]; then
 fi
 echo "$INVOKE_OUTPUT"
 
+# Pre-commit deletion check: recover any unexpected deletions in Inbox/ or Canon/
+# (raw transcripts and Canon entries must never be silently dropped by the Implementer)
+DELETED_PROTECTED=$(git ls-files --deleted -- 'Inbox/' 'Canon/' 2>/dev/null || true)
+if [ -n "$DELETED_PROTECTED" ]; then
+    echo "[$TIMESTAMP] WARNING: Unexpected deletions in protected paths — recovering..."
+    while IFS= read -r pf; do
+        [ -z "$pf" ] && continue
+        git checkout HEAD -- "$pf" 2>/dev/null \
+            && echo "[$TIMESTAMP]   Recovered: $pf" \
+            || echo "[$TIMESTAMP]   Could not recover: $pf"
+    done <<< "$DELETED_PROTECTED"
+fi
+
 # Log to changelog
 FIXES=$(git diff --name-only "$HEAD_BEFORE_RUN" 2>/dev/null | wc -l | tr -d ' ')
 "$SCRIPT_DIR/log-change.sh" "Implementer" "Self-healing pass ($TRIGGER): ${FIXES} files touched"

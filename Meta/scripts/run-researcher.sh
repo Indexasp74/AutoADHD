@@ -414,7 +414,7 @@ echo "Phase 5: Linking back to source..."
 if [ -n "$SOURCE_NOTE" ] && [ -f "$SOURCE_NOTE" ]; then
     # Add research field to frontmatter if not present
     if ! grep -q "^research:" "$SOURCE_NOTE"; then
-        sed -i '' "/^---$/,/^---$/{
+        sed -i "/^---$/,/^---$/{
             /^---$/b
             /^linked:/i\\
 research: \"[[Thinking/Research/${ARTICLE_FILENAME}]]\"
@@ -423,7 +423,7 @@ research: \"[[Thinking/Research/${ARTICLE_FILENAME}]]\"
 
     # Flip enrichment_status so it doesn't get re-researched
     if grep -q "^enrichment_status:.*needs-research" "$SOURCE_NOTE" 2>/dev/null; then
-        sed -i '' 's/^enrichment_status:.*needs-research/enrichment_status: researched/' "$SOURCE_NOTE" 2>/dev/null || true
+        sed -i 's/^enrichment_status:.*needs-research/enrichment_status: researched/' "$SOURCE_NOTE" 2>/dev/null || true
     fi
 fi
 

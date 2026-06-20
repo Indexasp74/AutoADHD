@@ -53,7 +53,14 @@ while true; do
     done
 
     if [ "$FOUND_AUDIO" -eq 0 ]; then
-        break
+        # One-shot mode (macOS launchd WatchPaths re-triggers on each file event):
+        # exit when the drop folder is empty. Persistent mode (default — WSL/cron
+        # keepalive has no file-event trigger): sleep and keep polling so the
+        # process stays alive and the health check can see it.
+        if [ "${VOICE_WATCH_ONESHOT:-0}" = "1" ]; then
+            break
+        fi
+        sleep "${VOICE_WATCH_INTERVAL:-10}"
     fi
 done
 

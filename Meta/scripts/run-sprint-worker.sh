@@ -26,7 +26,7 @@ echo "[$TIMESTAMP] Sprint worker starting..."
 
 # --- Lock: prevent concurrent runs ---
 if [ -f "$LOCK_FILE" ]; then
-    LOCK_AGE=$(( $(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || stat -c %Y "$LOCK_FILE" 2>/dev/null || echo 0) ))
+    LOCK_AGE=$(( $(date +%s) - $(stat -c %Y "$LOCK_FILE" 2>/dev/null || stat -f %m "$LOCK_FILE" 2>/dev/null || echo 0) ))
     if [ "$LOCK_AGE" -lt 3600 ]; then
         echo "Another sprint worker is running (lock age: ${LOCK_AGE}s). Exiting."
         exit 0
