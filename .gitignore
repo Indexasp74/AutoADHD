@@ -59,18 +59,9 @@ node_modules/
 *.swo
 *.swn
 
-# === Vault CONTENT — personal, never pushed (ship the system, bring your vault) ===
-# While ignored, agents won't git-commit notes; they still write to disk + Obsidian.
-# Canon/README.md ships (structure doc); other note dirs are ignored wholesale
-# (the scripts recreate the folder skeleton at runtime).
-/Canon/*
-!/Canon/README.md
-/Inbox/
-/Thinking/
-/Articles/
-/Meta/AI-Reflections/
-/Meta/review-queue/
-/Meta/sprint/
-/Meta/operations/
-/Meta/changelog.md
-/Meta/MANIFEST.md
+# === Vault content & runtime — intentionally NOT ignored here ===
+# In single-repo mode the system git-tracks every change (its design), so these
+# are tracked normally. In two-repo mode the engine (public) repo ignores them
+# via .git/info/exclude, and the private vault repo tracks them. See
+# Meta/Two-Repo-Setup.md. (Generated telemetry — token usage, agent feedback,
+# decisions summary — stays ignored above in BOTH modes.)
