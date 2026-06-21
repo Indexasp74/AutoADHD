@@ -222,10 +222,8 @@ sed -i.bak "/^changelog:/a\\
 $CHANGELOG_ENTRY" "$BEST_TASK"
 rm -f "${BEST_TASK}.bak"
 
-# Commit results
-cd "$VAULT_DIR"
-git add -A 2>/dev/null || true
-git commit -m "[Sprint Worker] $BEST_NAME — completed by $BEST_ASSIGNEE, awaiting review" 2>/dev/null || true
+# Commit results (routed via agent_git: vault content → vault repo in two-repo mode)
+agent_stage_and_commit "[Sprint Worker] $BEST_NAME — completed by $BEST_ASSIGNEE, awaiting review" Meta/sprint/ Meta/changelog.md 2>/dev/null || true
 
 # Telegram notification
 "$SCRIPT_DIR/send-telegram.sh" "✅ Sprint worker completed: $BEST_NAME
@@ -267,10 +265,8 @@ done
 if [ "$PROMOTED" -gt 0 ]; then
     "$SCRIPT_DIR/send-telegram.sh" "🔗 $PROMOTED task(s) unblocked by: $BEST_NAME
 Sprint worker will pick them up next cycle." 2>/dev/null || true
-    # Commit the promotions
-    cd "$VAULT_DIR"
-    git add Meta/sprint/active/ 2>/dev/null || true
-    git commit -m "[Sprint Worker] Auto-promoted $PROMOTED task(s) after $BEST_NAME completed" 2>/dev/null || true
+    # Commit the promotions (routed to the vault repo)
+    agent_stage_and_commit "[Sprint Worker] Auto-promoted $PROMOTED task(s) after $BEST_NAME completed" Meta/sprint/active/ 2>/dev/null || true
 fi
 
 "$SCRIPT_DIR/log-agent-feedback.sh" "SprintWorker" "task_completed" "Completed: $BEST_NAME" "" "" "false" 2>/dev/null || true

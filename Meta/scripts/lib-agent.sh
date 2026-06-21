@@ -5,9 +5,15 @@ agent_vault_dir="${VAULT_DIR:-${VAULT_DIR:-$HOME/VaultSandbox}}"
 agent_lib_dir="$agent_vault_dir/Meta/scripts"
 
 agent_git() {
-    # Run git from the vault directory with explicit paths.
-    # Uses --git-dir/--work-tree flags for robustness in subprocess chains.
-    git -C "$agent_vault_dir" "$@"
+    # Where agent commits go. Two-repo mode (VAULT_GIT_DIR set): vault CONTENT
+    # commits land in the PRIVATE vault repo (engine files are ignored there, so
+    # engine self-heals stay uncommitted in the public repo for human review).
+    # Single-repo mode (unset): the one repo at $agent_vault_dir, as before.
+    if [ -n "${VAULT_GIT_DIR:-}" ]; then
+        git --git-dir="$VAULT_GIT_DIR" --work-tree="$agent_vault_dir" "$@"
+    else
+        git -C "$agent_vault_dir" "$@"
+    fi
 }
 
 agent_require_commands() {

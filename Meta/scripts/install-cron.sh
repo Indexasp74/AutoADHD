@@ -54,6 +54,10 @@ $BEGIN
 # Publish human-facing vault content into the Obsidian vault — every 15 min
 # (no-op when nothing changed; honors OBSIDIAN_* in .env).
 */15 * * * * $WRAP "$SCRIPT_DIR/publish-to-obsidian.sh" >> /tmp/vault-publish.log 2>&1
+
+# Push the PRIVATE vault repo to its remote — every 10 min (two-repo mode only;
+# no-op when VAULT_GIT_DIR is unset).
+*/10 * * * * $WRAP "$SCRIPT_DIR/push-vault.sh" >> /tmp/vault-push.log 2>&1
 $END
 EOF
 
