@@ -100,7 +100,10 @@ NOW_TS=$(date +%s)
 for hb in "$HOME/.vault/heartbeats"/*; do
     [ -f "$hb" ] || continue
     agent_name=$(basename "$hb")
-    last_ts=$(cat "$hb" 2>/dev/null || echo 0)
+    # Heartbeat format is "<epoch> <status>" — extract leading digits only
+    # (raw content would break arithmetic: "ok: unbound variable").
+    last_ts=$(tr -dc '0-9' < "$hb" 2>/dev/null || echo 0)
+    [ -n "$last_ts" ] || last_ts=0
     age_hours=$(( (NOW_TS - last_ts) / 3600 ))
     AGENT_HEALTH="$AGENT_HEALTH
 - $agent_name: last ran ${age_hours}h ago"

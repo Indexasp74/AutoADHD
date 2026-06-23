@@ -74,7 +74,7 @@ morning_mode() {
         output=$(grep -m1 '^output:' "$action_file" | sed 's/^output:[[:space:]]*//' | tr -d '"' || true)
         enrichment_status=$(grep -m1 '^enrichment_status:' "$action_file" | sed 's/^enrichment_status:[[:space:]]*//' | tr -d '"' || true)
         next_step=$(grep -m1 '^\*\*Next step\*\*:' "$action_file" | sed 's/^\*\*Next step\*\*:[[:space:]]*//' || true)
-        mentions_count=$(grep -c '^[[:space:]]*-.*"20[0-9][0-9]-' "$action_file" 2>/dev/null || echo "0")
+        mentions_count=$(grep -c '^[[:space:]]*-.*"20[0-9][0-9]-' "$action_file" 2>/dev/null); mentions_count=${mentions_count:-0}
 
         # Score per spec: due urgency + mentions + staleness + priority + unenriched boost
         local score=0
@@ -373,7 +373,7 @@ nudge_mode() {
         [ "$days_old" -gt 7 ] || continue
 
         local mentions_count
-        mentions_count=$(grep -c '^[[:space:]]*-.*"20[0-9][0-9]-' "$action_file" 2>/dev/null || echo "0")
+        mentions_count=$(grep -c '^[[:space:]]*-.*"20[0-9][0-9]-' "$action_file" 2>/dev/null); mentions_count=${mentions_count:-0}
 
         "$SCRIPT_DIR/send-telegram.sh" "⚠️ Stale: ${name}
 First mentioned: ${first_mentioned} (${days_old} days ago)
