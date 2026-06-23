@@ -149,13 +149,21 @@ run_provider() {
                 model_args="--model $model_id"
             fi
 
-            # --- Strategy 1: Max/OAuth from vault dir ---
+            # --- Strategy 1: subscription (OAuth) from vault dir ---
+            # Prefer the Claude Code subscription login (Pro/Max) over metered
+            # API. The CLI uses ANTHROPIC_API_KEY if it's set in the env — and
+            # cron-wrapper.sh exports it from .env — which silently forces
+            # metered API billing (and fails with "Credit balance is too low"
+            # when that balance is empty). Unset it here so the CLI uses the
+            # OAuth subscription session. Set PREFER_API_BILLING=1 to opt out
+            # (e.g. you genuinely want metered API for batch agents).
             local s1_exit=0
             local s1_output=""
             local s1_stderr_file
             s1_stderr_file=$(mktemp "/tmp/invoke-agent-stderr.XXXXXX")
             s1_output=$(
                 unset GIT_DIR GIT_WORK_TREE 2>/dev/null || true
+                [ "${PREFER_API_BILLING:-0}" = "1" ] || unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN 2>/dev/null || true
                 cd "$VAULT_DIR" 2>/dev/null || true
                 "$CLAUDE_BIN" --dangerously-skip-permissions --output-format json $model_args -p "$prompt" 2>"$s1_stderr_file"
             ) || s1_exit=$?
