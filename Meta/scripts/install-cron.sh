@@ -31,6 +31,11 @@ $BEGIN
 # Managed by Meta/scripts/install-cron.sh — do not edit by hand.
 # Vault root: $VAULT_ROOT
 
+# Retry failed extractions — 7:00 AM (clears any backlog left by an outage,
+# e.g. cron-wrapper.sh billing/auth failures, before the day's briefing runs;
+# no-op when no notes are at status: failed).
+0 7 * * *    $WRAP "$SCRIPT_DIR/retry-failed.sh" >> /tmp/vault-retry.log 2>&1
+
 # Daily briefing — 7:30 AM
 30 7 * * *   $WRAP "$SCRIPT_DIR/daily-briefing.sh" >> /tmp/vault-briefing.log 2>&1
 
@@ -43,6 +48,14 @@ $BEGIN
 
 # Weekly maintenance / Thinker — Sunday 10:00 AM
 0 10 * * 0   $WRAP "$SCRIPT_DIR/weekly-maintenance.sh" >> /tmp/vault-weekly.log 2>&1
+
+# Drip extraction — 1:00 AM (low-usage window; box is on ET so this is 1 AM ET).
+# ONE long-running, budget-paced process that drains the failed/unprocessed
+# backlog a few notes per Pro session window, staying shy of the session limit,
+# then stops by ~8:30 AM (DRIP_MAX_RUNTIME). Remainder drains on following
+# nights. flock prevents a slow night from overlapping the next start. No-op
+# when the backlog is empty.
+0 1 * * *    $WRAP flock -n /tmp/vault-drip.lock "$SCRIPT_DIR/drip-extract.sh" >> /tmp/vault-drip.log 2>&1
 
 # Sprint worker — every 30 minutes (flock prevents overlap)
 */30 * * * * $WRAP flock -n /tmp/vault-sprint.lock "$SCRIPT_DIR/run-sprint-worker.sh" "$VAULT_ROOT" >> /tmp/vault-sprint.log 2>&1
