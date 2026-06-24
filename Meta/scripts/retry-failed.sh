@@ -44,8 +44,19 @@ echo "$FAILED_NOTES" | grep -v '\-[0-9]\.md$' | while IFS= read -r note_path; do
     echo "Retrying: $note_path"
     agent_note_set_status "$note_path" "extracting"
     if ! /bin/bash "$SCRIPT_DIR/run-extractor.sh" "$note_path"; then
-        agent_note_set_status "$note_path" "failed" || true
-        notify_retry_failure "$note_path" "extractor rerun failed"
+        # The extractor can complete the extraction (status: extracted + an
+        # ## Extracted section written) and only then trip a tail-end error —
+        # most commonly a Pro session-limit 429 on a follow-up call. Don't
+        # downgrade a genuinely-extracted note back to failed: that re-queues
+        # completed work and burns quota on the next cycle. Only mark failed
+        # when the extraction did NOT land.
+        if grep -q '^status: extracted$' "$note_path" 2>/dev/null \
+            && grep -q '^## Extracted' "$note_path" 2>/dev/null; then
+            echo "  -> extractor exited non-zero, but note is already extracted; keeping status: extracted"
+        else
+            agent_note_set_status "$note_path" "failed" || true
+            notify_retry_failure "$note_path" "extractor rerun failed"
+        fi
     fi
     # Cooldown between retries to avoid rate limits
     sleep 10
