@@ -51,6 +51,13 @@ done <<< "$NOTES"
 NOTE_COUNT="${#NOTE_PATHS[@]}"
 echo "Found $NOTE_COUNT note(s) to process."
 
+# Refresh the Canon index so the dedup list injected into the prompt is current.
+# Token-free local scan; MANIFEST.md is whitelisted in the clean-worktree guard,
+# so regenerating it here never blocks the agent.
+/bin/bash "$SCRIPT_DIR/build-manifest.sh" >/dev/null 2>&1 || true
+CANON_INDEX="$(cat "$VAULT_DIR/Meta/MANIFEST.md" 2>/dev/null || true)"
+[ -n "$CANON_INDEX" ] || CANON_INDEX="(index unavailable — fall back to: find Canon/ -name '*.md' and grep -r 'aliases:' Canon/)"
+
 # Build a lean prompt — the agent reads files itself at runtime
 # This keeps the prompt under 2K tokens instead of 9K+
 PROMPT="You are the EXTRACTOR agent for this Obsidian vault.
@@ -60,17 +67,26 @@ PROMPT="You are the EXTRACTOR agent for this Obsidian vault.
 2. Read .claude/skills/vault-writer/SKILL.md — note format, frontmatter, emoji headings, provenance
 3. Read Meta/Agents/Extractor.md — your agent spec and role-specific rules
 
-## STEP 2: Check what already exists (to avoid duplicates)
-Run: find Canon/ -name '*.md' -type f | head -200
-For People specifically, check aliases: grep -r 'aliases:' Canon/People/ | head -50
+## STEP 2: Existing Canon entries (your DEDUP source of truth)
+The index below already lists EVERY existing Canon entry and its known aliases.
+Use it — NOT find/grep — to decide create-vs-update. Do NOT scan Canon/ with
+find or grep to discover what exists; that wastes dozens of turns. Only open a
+specific Canon file when you have decided to UPDATE it and need its current
+contents. (Escape hatch: if you suspect a Whisper-garbled name matches an
+existing person that the index spellings don't make obvious, you may grep that
+ONE folder — not the whole vault.)
+
+<<< CANON INDEX (auto-generated, current as of this run) >>>
+$CANON_INDEX
+<<< END CANON INDEX >>>
 
 ## STEP 3: Process these notes
 $NOTES
 
 For EACH note:
 1. Read the note contents (cat the file)
-2. Extract ALL entities per your spec: people, events, concepts, decisions, actions, places, reflections
-3. Check existing Canon entries before creating new ones (use find + grep to check names and aliases)
+2. Extract ALL entities per your spec: people, events, concepts, decisions, actions, places, organizations, reflections
+3. Before creating a new entry, check the CANON INDEX above for an existing entry or alias. If found, UPDATE it instead of creating a duplicate.
 4. Create/update Canon entries with proper frontmatter, provenance, wikilinks, and emoji headings
 5. Write the ## Extracted section back into the inbox note (MANDATORY)
 6. Set status: extracted, source_agent: Extractor, and source_date: [ISO timestamp] in the inbox note frontmatter, even for no-op test notes
