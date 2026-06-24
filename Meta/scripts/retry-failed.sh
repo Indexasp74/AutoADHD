@@ -13,6 +13,12 @@ export GIT_WORK_TREE="$VAULT_DIR"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib-agent.sh"
 
+# Retry is recovery: re-running the exact extraction the voice pipeline already
+# runs with VAULT_AGENT_ALLOW_DIRTY=1. Match it, so a dirty derived/bookkeeping
+# file can never deadlock the recovery path into failure-retry-failure. Without
+# this, a single uncommitted tracked file blocks every failed note forever.
+export VAULT_AGENT_ALLOW_DIRTY=1
+
 notify_retry_failure() {
     local note_path="${1:?note path required}"
     local reason="${2:-unknown failure}"

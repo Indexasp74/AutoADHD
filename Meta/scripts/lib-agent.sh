@@ -36,9 +36,13 @@ agent_require_commands() {
 # generate new notes every run (daily briefing, research articles, AI
 # reflections) and committing each one's pathspec is their own job — a
 # generated untracked note must never block the next agent. The grep still
-# drops tracked-file churn that is expected (obsidian workspace, changelog).
+# drops tracked-file churn that is expected (obsidian workspace, changelog,
+# MANIFEST). changelog.md and MANIFEST.md are both auto-generated bookkeeping
+# (build-manifest.sh rewrites MANIFEST.md wholesale every run and never commits
+# it); they must never block the next agent or extractions deadlock in a
+# failure-retry-failure loop on a dirty derived file.
 agent_filtered_worktree_status() {
-    agent_git status --porcelain --untracked-files=no | grep -vE '^[ MARCUD?!]{2} (\.obsidian/workspace\.json|\.obsidian/graph\.json|Meta/changelog\.md|Inbox/Voice/_drop/.*|Inbox/Voice/_processed/.*|Inbox/Voice/_processing/.*|Inbox/Voice/_extracted/.*|Inbox/Voice/_duplicate/.*|\.agent-locks/.*)$' || true
+    agent_git status --porcelain --untracked-files=no | grep -vE '^[ MARCUD?!]{2} (\.obsidian/workspace\.json|\.obsidian/graph\.json|Meta/changelog\.md|Meta/MANIFEST\.md|Inbox/Voice/_drop/.*|Inbox/Voice/_processed/.*|Inbox/Voice/_processing/.*|Inbox/Voice/_extracted/.*|Inbox/Voice/_duplicate/.*|\.agent-locks/.*)$' || true
 }
 
 # Record an agent heartbeat: machine-local $HOME/.vault/heartbeats/<name>
