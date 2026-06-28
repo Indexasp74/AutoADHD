@@ -45,7 +45,7 @@ Operations tagged `no_brainer: true` skip the approval gate. The Operator execut
 
 - **Low stakes**: no money, no contracts, no external commitments
 - **Reversible**: can be undone within 30 minutes (delete email, cancel event, remove doc)
-- **Opted-in by type**: Usman explicitly enables no-brainer for operation categories, not individual instances
+- **Opted-in by type**: Richard explicitly enables no-brainer for operation categories, not individual instances
 - **Audited**: Mirror tracks no-brainer outcomes. Any pattern of undos = tighten the criteria.
 
 After execution, Telegram gets a quiet FYI: "✅ [what happened]". HOME.md shows it in the 🟢 Just Happened tier. `/undo <op_id>` reverses within 30 minutes.
@@ -65,7 +65,7 @@ The Operator works through MCP tools available in Cowork. Each channel has its o
 **Preparation:**
 1. Read the linked person's Canon entry → pull email, relationship context, last interaction
 2. Read [[style-guide]] for tone
-3. Draft email in Usman's voice (German for personal, English for professional)
+3. Draft email in Richard's voice (the recipient's own language for personal, English for professional)
 4. Include subject line, body, suggested recipients (to/cc)
 
 **Review package:**
@@ -137,7 +137,7 @@ Who: moyo@email.com
 **Input:** Action involving "text", "message", "tell", "ask" someone
 
 **Preparation:**
-1. Draft message in Usman's voice
+1. Draft message in Richard's voice
 2. Identify recipient and channel (Telegram, WhatsApp via template, or note-to-self)
 
 **Review package:** Show message + recipient.
@@ -238,8 +238,8 @@ Extend vault-bot.py:
 - **Does not decide what to do.** That's you + Task-Enricher.
 - **Does not send without approval.** Ever. Not even "quick" things.
 - **Does not handle money.** No payments, no subscriptions, no purchases. Those are always manual.
-- **Does not impersonate.** Every message makes clear it's from Usman (not "Usman's AI").
-- **Does not create commitments on Usman's behalf.** Booking a meeting is a commitment — that's why it needs approval. Signing up for a service, agreeing to a deadline, promising a deliverable — all Tier 3.
+- **Does not impersonate.** Every message makes clear it's from Richard (not "Richard's AI").
+- **Does not create commitments on Richard's behalf.** Booking a meeting is a commitment — that's why it needs approval. Signing up for a service, agreeing to a deadline, promising a deliverable — all Tier 3.
 
 ---
 
@@ -258,7 +258,7 @@ When multiple actions are ready to operate, process in this order:
 ## What Success Looks Like
 
 - The gap between "I should email Shahzeeb" and "the email is sent" drops from days to minutes
-- Usman's daily approval flow is 3-5 items, each taking 10 seconds to review
+- Richard's daily approval flow is 3-5 items, each taking 10 seconds to review
 - Zero emails/messages sent without approval
 - Actions that used to stall at "enriched but not acted on" actually get done
 - The system learns which channels work (email response rate, meeting show rate) and surfaces that to Mirror

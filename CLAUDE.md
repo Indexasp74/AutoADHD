@@ -177,12 +177,12 @@ source: voice
 first_mentioned: 2026-03-16
 due: 2026-04-30     # when should it be done?
 start: 2026-03-20   # when should work begin?
-owner: "[[Usman Kotwal]]"
-output: "Having a valid German driving license"
+owner: "[[Richard Lee]]"
+output: "Having a valid driving license"
 mentions:            # track every time this comes up
   - 2026-03-16 - Voice - morning-memo.md
 linked:
-  - "[[Usman Kotwal]]"
+  - "[[Richard Lee]]"
 ---
 ```
 
@@ -207,7 +207,7 @@ linked:
 
 ### Beliefs
 
-What Usman holds to be true. These anchor strategy and decisions. Can be challenged, updated, or retired.
+What Richard holds to be true. These anchor strategy and decisions. Can be challenged, updated, or retired.
 
 ```yaml
 ---
@@ -286,7 +286,7 @@ Ten agents operate in this vault. Full specs in `Meta/Agents/`. System blueprint
 - Does external research on concepts/ideas mentioned in the vault
 
 ### Mirror (runs weekly — Sundays, after Thinker)
-- Reflects Usman's patterns, strengths, weaknesses, and growth over time
+- Reflects Richard's patterns, strengths, weaknesses, and growth over time
 - Checks belief-action alignment (Canon/Beliefs/ vs Canon/Actions/)
 - Tracks energy patterns (when does engagement happen?)
 - Writes to `Meta/AI-Reflections/[DATE] - Mirror.md`
@@ -303,7 +303,7 @@ Ten agents operate in this vault. Full specs in `Meta/Agents/`. System blueprint
 
 ### Task-Enricher (runs daily — 8:30 AM + on-demand)
 - Breaks actions into ADHD-friendly sub-steps
-- Drafts messages in Usman's voice
+- Drafts messages in Richard's voice
 - Nudges stale items via Telegram
 - Priority scoring for action ranking
 

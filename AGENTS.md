@@ -110,7 +110,7 @@ You can either execute the shell script directly OR read it to understand the co
 
 ### You Should NOT
 
-- Write in Usman's voice (see `Meta/style-guide.md` — that's Claude's domain)
+- Write in Richard's voice (see `Meta/style-guide.md` — that's Claude's domain)
 - Make architectural decisions (propose them in a PR description instead)
 - Touch locked fields in any note's frontmatter
 - Run Mirror or Thinker (these need Claude's judgment)
@@ -131,7 +131,7 @@ Meta/Architecture.md   — system blueprint, runtimes, review gates
 Meta/MANIFEST.md       — auto-generated vault index (don't edit)
 Meta/scripts/          — all shell scripts (the plumbing)
 Meta/Agents/           — agent specifications (the brains)
-Meta/style-guide.md    — Usman's writing voice
+Meta/style-guide.md    — Richard's writing voice
 Canon/                 — stable knowledge (people, events, concepts, etc.)
 Inbox/                 — raw capture (voice memos, quick notes)
 ```

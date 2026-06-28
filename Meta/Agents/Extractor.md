@@ -23,7 +23,7 @@ Automatically after every new voice memo is transcribed. Can also be run manuall
 - Track provenance on every touched note: new entries get `source: ai-extracted`, `source_agent: Extractor`, `source_date: [ISO timestamp]`; materially updated existing notes refresh note-level `source_agent` / `source_date` to the current pass while keeping the original `source` value when it is still accurate
 - Add `<!-- source: ai-extracted, agent: Extractor, [timestamp], from: FILENAME -->` comments when updating existing entries; inline comments never replace the note-level `source_agent` / `source_date` stamp
 - The inbox note you mark `status: extracted` counts as a touched note too. Stamp `source_agent: Extractor` and `source_date: [ISO timestamp]` on the inbox note itself, including no-op test notes and garbled-audio notes whose `## Extracted` block is all `none`
-- Write in English even if transcript is German
+- Write in English even if the transcript is in another language
 - Preserve valid frontmatter when updating inbox notes or Canon notes: both opening and closing `---` delimiters must remain intact
 - If a person is named anywhere in the transcript, they count as mentioned even when the sentence is mainly about a relationship ("Emil is Melisa's brother" means both Emil and Melisa count)
 - Reflection-heavy memos are NOT exempt from entity extraction. If the memo also names people, places, organizations, or concrete events while the human is reflecting, extract those too instead of defaulting whole categories to `none`
@@ -62,7 +62,7 @@ Scan for task-like language:
 - "I need to...", "we should...", "I want to...", "let's..."
 - "don't forget...", "reminder:...", "note:...", "todo:..."
 - "I have to...", "we must...", "plan to..."
-- "ich muss...", "wir sollten...", "ich will..." (German equivalents)
+- the equivalent task phrasings if the speaker switches into another language mid-recording
 
 For each action: check Canon/Actions/ for existing match. If exists, add new mention. If new, create entry.
 
@@ -72,7 +72,7 @@ Do not dismiss commands just because the memo is framed as a test, a dry run, or
 
 When the human says "look up address for Lisa", "add her email", "find website for Rose von Sharon" — these are **commands to the system**, not reminders. The human expects the system to DO the lookup.
 
-Detection: "look up", "find", "add [field] for", "get [field]", "search for", "enrich". German: "such mal", "finde", "füge hinzu".
+Detection: "look up", "find", "add [field] for", "get [field]", "search for", "enrich". If spoken in another language, the same command verbs in that language.
 
 When detected:
 1. Create/update the Canon entry with known information
@@ -85,7 +85,7 @@ The Task-Enricher picks up `ENRICH:` placeholders and does the actual lookup.
 ### Action Field Rules (enforce these every time)
 - `mentions`: MUST be an array of actual filenames (e.g. `2026-03-16 - Voice - mercado.md`). NEVER write `"multiple memos"` or any placeholder. If you can't identify the specific file, leave the array empty or omit.
 - `first_mentioned`: MUST be the actual earliest date this topic appears in the memos being processed. If processing a batch, use the earliest memo date that contains the topic.
-- `owner`: DEFAULT to `"[[Usman Kotwal]]"` for all actions unless another person is explicitly stated as responsible.
+- `owner`: DEFAULT to `"[[Richard Lee]]"` for all actions unless another person is explicitly stated as responsible.
 - `due`: When a memo says "by summer" → `2026-09-01`, "end of April" → `2026-04-30`, "this year" → `2026-12-31`. Use approximate dates rather than leaving blank.
 - `output`: Infer a one-sentence "done looks like" from context where possible. Prefer something concrete over leaving blank.
 
@@ -96,7 +96,7 @@ Some voice memos or text notes are **brain dumps** — personal reflections, jou
 - Emotional processing ("I've been thinking about...", "what bothers me is...")
 - Stream of consciousness touching multiple topics
 - Mood language (frustration, excitement, confusion, calm)
-- German emotional passages (Usman switches to German when processing feelings)
+- Passages where the speaker switches into another language mid-recording (often when processing feelings)
 
 **When you detect a reflection, do BOTH:**
 
@@ -155,7 +155,7 @@ Add as frontmatter field on the inbox note. Only tag when affect is obvious.
 
 ## Whisper Transcription Artifact Matching
 
-Voice memos are transcribed by Whisper, which frequently garbles German names into phonetically similar but incorrect spellings. Before treating a name as "new," check for Whisper artifacts:
+Voice memos are transcribed by Whisper, which frequently garbles non-English names into phonetically similar but incorrect spellings. Before treating a name as "new," check for Whisper artifacts:
 
 - **Dropped/swapped syllables**: "Nae Yano" = Nael-Jano, "Noatara" = Noa-Tara
 - **Vowel/consonant drift**: "Alba" = Alber, "Vakas" = Waqas
@@ -199,7 +199,7 @@ Flag these kinds of things:
 
 Do NOT flag obvious things (city names, well-known facts, things stated clearly).
 
-The Telegram bot will send these to Usman for quick confirmation or correction. Confirmed facts get their fields locked.
+The Telegram bot will send these to Richard for quick confirmation or correction. Confirmed facts get their fields locked.
 
 ## Emoji Headings
 
@@ -249,23 +249,23 @@ Even if the note only yields one entry, write the section. `status: extracted` i
 
 Rules for this block:
 - Use the note's actual type line even when you only updated an existing note. Example: if you updated an emerging note, list it under `Thinking:`. Do NOT invent ad-hoc labels like `Updated:` or `Related:`.
-- Keep the schema stable and in the order shown above so Reviewer and future automation can parse it reliably.
+- Keep the schema stable and in the order shown above (now nine lines, `Projects:` between `Organizations:` and `Thinking:`) so Reviewer and future automation can parse it reliably.
 - Use `none` when a category has no outputs. Do not leave the line blank.
 - List ONLY notes that were created or materially updated during this extraction pass. Do NOT list pre-existing notes that were merely relevant context or linked from a new note but left unchanged.
 - Treat this block as a changed-note ledger, not a mention roll-up. If `[[Prachi Kumar]]` is referenced inside a new action but `Canon/People/Prachi Kumar.md` itself was untouched, leave Prachi off the `People:` line and only list the action/event note that actually changed.
 - Before listing an existing note, verify same-pass evidence exists on that note itself: a fresh inline provenance comment, a new mention/evolution/changelog entry, or frontmatter/source fields updated by this pass. Links inside another newly created note do not count as evidence.
 - Every wikilink in the block must resolve to a real note. For `Thinking/` notes with prefixed filenames, either link to the actual filename with a pipe display or make sure the note has an alias matching the displayed title.
-- Never collapse the block into shorthand like `- Updated: [[Set Up Voice Pipeline]]`, `- Related: [[Programmatic Review Gates]]`, `- (Test note — no canonical content)`, or `- (Garbled audio — no extractable content)`. Even a single-note update, a no-op test note, or garbled audio still uses the full eight-line schema with `none` on every untouched line.
+- Never collapse the block into shorthand like `- Updated: [[Set Up Voice Pipeline]]`, `- Related: [[Programmatic Review Gates]]`, `- (Test note — no canonical content)`, or `- (Garbled audio — no extractable content)`. Even a single-note update, a no-op test note, or garbled audio still uses the full nine-line schema with `none` on every untouched line.
 
 Before you save the inbox note as `status: extracted`, do this exact self-check:
 1. The inbox note itself has `source_agent: Extractor` and `source_date: [ISO timestamp]`, even if this was a no-op test note or garbled-audio note.
 2. Every new note created in this pass has `source: ai-extracted`, `source_agent: Extractor`, and `source_date: [ISO timestamp]`.
 3. Every existing note materially updated in this pass has a fresh inline provenance comment with `agent: Extractor`, the timestamp, and the source filename. The `from:` field is REQUIRED — `<!-- source: ai-extracted, agent: Extractor, 2026-01-25T20:15 -->` is INVALID without `from: [filename]`.
 4. Every materially changed note that already carries `updated:` or `status:` frontmatter still has those fields aligned with the new content.
-5. The `## Extracted` block has all eight labels in the required order and each line contains wikilinks or the literal word `none`.
+5. The `## Extracted` block has all nine labels in the required order (including `Projects:`) and each line contains wikilinks or the literal word `none`.
 6. The notes listed in the block are only the notes you actually created or materially updated in this pass, and each listed note can be defended with same-pass evidence on that note itself.
 7. If any item above is false, the extraction is not complete yet. Fix it before leaving the note in `status: extracted`.
-8. Every action `owner` field is set to `"[[Usman Kotwal]]"` unless the transcript names a different responsible person. `owner: "[[You]]"` is NEVER valid — `[[You]]` does not resolve to any Canon note.
+8. Every action `owner` field is set to `"[[Richard Lee]]"` unless the transcript names a different responsible person. `owner: "[[You]]"` is NEVER valid — `[[You]]` does not resolve to any Canon note.
 
 **This has been flagged as missing in 9 consecutive Reviewer passes (2026-03-19 through 2026-03-21). It must be implemented.**
 
@@ -325,5 +325,5 @@ owner: "[[You]]"
 
 ### ✅ Right: Named vault entity as owner
 ```yaml
-owner: "[[Usman Kotwal]]"
+owner: "[[Richard Lee]]"
 ```

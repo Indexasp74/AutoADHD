@@ -1,6 +1,6 @@
 #!/bin/bash
 # run-mirror.sh
-# Mirror agent — reflects Usman's patterns, strengths, growth edges
+# Mirror agent — reflects Richard's patterns, strengths, growth edges
 # Usage: ./run-mirror.sh [topic]
 # Runs weekly after Thinker, or on-demand with optional topic focus
 
@@ -135,7 +135,7 @@ $DECISIONS_SUMMARY
 4. Read Canon/People/ for relationship pulse (sample 10 most-linked people)
 5. Analyze git timestamps for engagement patterns
 6. Write the full 7-section Mirror to Meta/AI-Reflections/$DATE - Mirror.md
-7. Be direct. Use Usman's own words. Don't soften.
+7. Be direct. Use Richard's own words. Don't soften.
 8. End with ONE question.
 9. Git commit: 'vault: mirror [$DATE]'"
 

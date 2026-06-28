@@ -1614,10 +1614,10 @@ async def try_quick_action(text, update):
             content = f"---\ntype: action\nname: {safe_name}\nstatus: open\npriority: {priority}\nsource: human\nfirst_mentioned: {datetime.now().strftime('%Y-%m-%d')}\n"
             if due:
                 content += f"due: {due}\n"
-            content += f"owner: \"[[Usman Kotwal]]\"\n"
+            content += f"owner: \"[[Richard Lee]]\"\n"
             if output:
                 content += f"output: \"{output}\"\n"
-            content += f"mentions:\n  - Telegram {datetime.now().strftime('%Y-%m-%d')}\nlinked:\n  - \"[[Usman Kotwal]]\"\n---\n\n# {safe_name}\n\nCreated via Telegram.\n"
+            content += f"mentions:\n  - Telegram {datetime.now().strftime('%Y-%m-%d')}\nlinked:\n  - \"[[Richard Lee]]\"\n---\n\n# {safe_name}\n\nCreated via Telegram.\n"
 
             os.makedirs(actions_dir, exist_ok=True)
             with open(action_path, 'w') as f:

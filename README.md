@@ -198,13 +198,13 @@ name: Get driving license
 status: open
 priority: medium
 source: voice
-owner: "[[Usman Kotwal]]"
+owner: "[[Richard Lee]]"
 first_mentioned: 2026-03-16
 mentions:
   - 2026-03-16 - Voice - morning-memo.md
   - 2026-03-22 - Voice - car-stuff.md
 linked:
-  - "[[Usman Kotwal]]"
+  - "[[Richard Lee]]"
 ---
 
 # 🎯 Get Driving License

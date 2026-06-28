@@ -4,7 +4,7 @@ name: Vault System Architecture
 created: 2026-03-23
 updated: 2026-04-06
 source: ai-generated
-owner: "[[Usman Kotwal]]"
+owner: "[[Richard Lee]]"
 status: active
 ---
 
@@ -51,7 +51,7 @@ The system runs across four environments. Each has different powers and constrai
 
 **Best for:** Architecture work, deep analysis, complex multi-tool workflows, anything requiring human conversation, prototyping, execution that touches external services.
 
-**Limitation:** Ephemeral. Cannot be scheduled. Requires Usman to be present.
+**Limitation:** Ephemeral. Cannot be scheduled. Requires Richard to be present.
 
 ### Runtime 2: Claude Code CLI (Local Mac)
 
@@ -132,7 +132,7 @@ Every agent has a defined role, runtime, schedule, and scope. No agent operates 
 | **Retrospective** | Claude CLI | Daily 9:00 PM | Vault health, what worked/didn't, spec improvements | Active |
 | **Task-Enricher** | Claude CLI (--scan) + Shell (--morning/--nudge) | Daily 8:30 AM (--morning) + on-demand | Break actions into steps, draft comms, nudge stale items, auto-flag research needs | Active |
 | **Implementer** | Claude CLI | After Retro + after Reviewer | Read findings, apply safe fixes, queue dangerous ones for review | Active |
-| **Mirror** | Claude CLI | Weekly (in weekly-maintenance.sh after Reviewer) + on-demand | Reflect Usman's patterns, strengths, weaknesses, growth/stagnation | Active |
+| **Mirror** | Claude CLI | Weekly (in weekly-maintenance.sh after Reviewer) + on-demand | Reflect Richard's patterns, strengths, weaknesses, growth/stagnation | Active |
 | **Researcher** | Claude CLI | Daily 9:00 AM scan + on-demand (triggered by Task-Enricher or human) | Multi-perspective research → Thinking/Research/ articles | Active |
 | **Operator** | Claude CLI + Telegram + Cowork | On-demand (`/email`, `/calendar`, auto-triage) | Draft deliverable → review gate → execute → done | Active (Email V1 live) |
 | **Advisor** | Claude CLI + SDK (Telegram streaming) | Always-on via Telegram + `/ask` `/strategy` | Strategic consultant, triage, coaching, dot-connecting. Dynamic vault lookup via tool_use for /ask and /strategy. | Active |
@@ -201,11 +201,11 @@ Reviewer flags issue ──→ writes to review-log.md ──→ Implementer rea
 
 ### The Execution Layer: Workflow-Centric
 
-The system's next frontier: moving from "know and surface" to "act in the world." The unit of value is a **commitment** — something Usman said he'd do or wants done. The core abstraction is a **workflow run**, not a bigger Operator agent.
+The system's next frontier: moving from "know and surface" to "act in the world." The unit of value is a **commitment** — something Richard said he'd do or wants done. The core abstraction is a **workflow run**, not a bigger Operator agent.
 
 **Strategy (Playing to Win):**
 
-- **Winning aspiration:** Usman never drops a ball — not because he remembers, but because the system catches, processes, enriches, and executes on every spoken commitment. He only does what only a human can do: decide, relate, create.
+- **Winning aspiration:** Richard never drops a ball — not because he remembers, but because the system catches, processes, enriches, and executes on every spoken commitment. He only does what only a human can do: decide, relate, create.
 - **Where to play:** Execution of commitments via email, calendar, research, and eventually multi-step concierge flows (restaurant booking, travel planning).
 - **How to win:** Voice-first, approve-only. Multi-step workflow chains with the right review gate at each junction. The system knows when it's stuck and surfaces a concrete ask, not a vague review burden.
 
@@ -260,7 +260,7 @@ Three tiers. Enforced by the script that runs the agent, not by the agent's own 
 - Fixing script bugs found by retro
 - Updating agent specs based on retro findings
 
-### Tier 2: Notify (do it, then tell Usman via Telegram)
+### Tier 2: Notify (do it, then tell Richard via Telegram)
 - Creating new Canon entries from extraction
 - Enriching existing entries with new data
 - Changing action statuses
@@ -282,20 +282,20 @@ Three tiers. Enforced by the script that runs the agent, not by the agent's own 
 
 ## Surfacing System — The Newspaper
 
-The ADHD brain's enemy is "browse and discover." The vault must come to Usman, not the other way around. HOME.md is redesigned as a newspaper front page with three attention tiers:
+The ADHD brain's enemy is "browse and discover." The vault must come to Richard, not the other way around. HOME.md is redesigned as a newspaper front page with three attention tiers:
 
 ### Tier 🔴 — Needs You (top of page)
-Things that are BLOCKED on Usman's decision. Approval requests from Operator, Tier 3 review items, sprint proposals awaiting a call. These show up at the top of HOME.md and get pushed to Telegram.
+Things that are BLOCKED on Richard's decision. Approval requests from Operator, Tier 3 review items, sprint proposals awaiting a call. These show up at the top of HOME.md and get pushed to Telegram.
 
 **Sources:** `Meta/operations/pending/` (status: pending), `Meta/review-queue/` (status: pending), `Meta/sprint/proposals/` (status: proposed)
 
 ### Tier ✨ — What's New (middle)
-Everything created in the last 48 hours. Auto-populated by Dataview. Each item shows emoji type, name, source, and linked context. Usman scans this when curious — no urgency, just awareness.
+Everything created in the last 48 hours. Auto-populated by Dataview. Each item shows emoji type, name, source, and linked context. Richard scans this when curious — no urgency, just awareness.
 
 **Sources:** All notes in Canon/, Thinking/, Meta/AI-Reflections/ with `created` date within 2 days.
 
 ### Tier 🟢 — Just Happened (bottom)
-No-brainers that auto-executed and sprint tasks that completed. These are FYI — no decision needed. Like a bank notification: "this happened." If something's wrong, Usman can undo.
+No-brainers that auto-executed and sprint tasks that completed. These are FYI — no decision needed. Like a bank notification: "this happened." If something's wrong, Richard can undo.
 
 **Sources:** `Meta/operations/completed/` (no_brainer: true OR status: executed, last 7 days), `Meta/sprint/done/` (last 7 days)
 
@@ -348,7 +348,7 @@ HOME.md "Just Happened" section shows the result
 
 Operations tagged `no_brainer: true` skip the approval gate entirely. The Operator executes immediately and logs to `Meta/operations/completed/`. These show up in the 🟢 tier — visible but not demanding attention.
 
-**Criteria for no-brainer status:** Low stakes, no money, no external commitments to people outside the inner circle, reversible within 30 minutes. Usman opts in per operation TYPE, not per instance.
+**Criteria for no-brainer status:** Low stakes, no money, no external commitments to people outside the inner circle, reversible within 30 minutes. Richard opts in per operation TYPE, not per instance.
 
 **Undo window:** 30 minutes. `/undo <op_id>` via Telegram reverses the operation (delete email, cancel event, remove doc).
 
@@ -404,7 +404,7 @@ A **hub** is a note with `hub: true` in frontmatter. Hubs are entry points that 
 ### Canon Types (crystallized, clear box)
 | Type | Folder | Purpose |
 |---|---|---|
-| person | Canon/People/ | Who they are, relationship to Usman, contact details |
+| person | Canon/People/ | Who they are, relationship to Richard, contact details |
 | event | Canon/Events/ | What happened, when, who was there |
 | action | Canon/Actions/ | Tasks, intentions, things to do |
 | place | Canon/Places/ | Locations with context |
@@ -416,7 +416,7 @@ A **hub** is a note with `hub: true` in frontmatter. Hubs are entry points that 
 | Type | Folder | Purpose |
 |---|---|---|
 | reflection | Thinking/ | Brain dumps, journal entries, processing moments (stay whole) |
-| belief | Thinking/ | What Usman holds to be true (anchors strategy) |
+| belief | Thinking/ | What Richard holds to be true (anchors strategy) |
 | concept | Thinking/ | Ideas, frameworks, mental models |
 | emerging | Thinking/ | Doesn't fit a box yet — and that's fine |
 
@@ -439,7 +439,7 @@ Agents append to this automatically. Git has full forensic detail.
 
 #### Reflection (`Thinking/`)
 
-Brain dumps, journal entries, processing moments. Not structured like concepts — these are *Usman thinking out loud*. The system cleans them up (grammar, structure, links) and learns from them (patterns feed the Mirror, insights feed the Thinker) but the original stays as a page.
+Brain dumps, journal entries, processing moments. Not structured like concepts — these are *Richard thinking out loud*. The system cleans them up (grammar, structure, links) and learns from them (patterns feed the Mirror, insights feed the Thinker) but the original stays as a page.
 
 ```yaml
 ---
@@ -463,7 +463,7 @@ The reflection is the original painting. The Canon entries are prints in differe
 
 #### Belief (`Thinking/`)
 
-What Usman holds to be true. These anchor strategy and decisions. They can be challenged, updated, or retired — but they're explicit.
+What Richard holds to be true. These anchor strategy and decisions. They can be challenged, updated, or retired — but they're explicit.
 
 ```yaml
 ---
@@ -485,7 +485,7 @@ linked:
 
 ## The Mirror Agent
 
-**Purpose:** Hold up an honest reflection of Usman's patterns, strengths, weaknesses, and whether he's actually changing or just planning to change.
+**Purpose:** Hold up an honest reflection of Richard's patterns, strengths, weaknesses, and whether he's actually changing or just planning to change.
 
 **Runtime:** Claude CLI (weekly) + Cowork (on-demand deep sessions)
 
@@ -504,14 +504,14 @@ linked:
 A periodic `Meta/AI-Reflections/[DATE] - Mirror.md` that covers:
 
 1. **Pattern Report** — "You've mentioned X five times without acting. You finished Y immediately. What's different?"
-2. **Strength Evidence** — concrete examples from the vault of what Usman does well (crisis management, relationship maintenance, systems thinking)
+2. **Strength Evidence** — concrete examples from the vault of what Richard does well (crisis management, relationship maintenance, systems thinking)
 3. **Growth Edges** — where the data shows stagnation or avoidance (not judgment — evidence)
 4. **Belief-Action Alignment** — "You say you believe in speed of execution, but 4 of your 8 open actions are >14 days old"
-5. **Energy Map** — when does Usman engage most? What topics get voice memos at 2 AM vs. what gets ignored?
+5. **Energy Map** — when does Richard engage most? What topics get voice memos at 2 AM vs. what gets ignored?
 6. **Delta Since Last Mirror** — what actually changed since the last reflection
 
 ### Tone:
-Direct. Not cruel, not coddling. Like a good coach who's seen your tape. Uses Usman's own words back at him when they contradict his actions.
+Direct. Not cruel, not coddling. Like a good coach who's seen your tape. Uses Richard's own words back at him when they contradict his actions.
 
 ---
 
@@ -639,7 +639,7 @@ Fields: timestamp, agent name, runtime, input/output tokens, cache creation/read
 
 ## The Advisor Agent
 
-The Advisor is Usman's always-on strategic consultant. It's the only agent that talks directly to the user in Telegram (other agents communicate through notifications).
+The Advisor is Richard's always-on strategic consultant. It's the only agent that talks directly to the user in Telegram (other agents communicate through notifications).
 
 **Persona:** Roger Martin + Bezos + empathetic coach. Direct, warm, slightly informal. References specific vault notes. One question at a time. No walls of text (ADHD-aware).
 
@@ -733,7 +733,7 @@ Override with env vars when intentional: `VAULT_ALLOW_DELETE=1`, `VAULT_ALLOW_CO
 - Deep relational analysis (that's Opus territory — judgment, nuance, reading between lines)
 - Anything requiring MCP tools (Gmail, Calendar, etc.)
 - Modifying Canon entries that require understanding relationship context
-- Writing in Usman's voice (use style-guide.md with Claude for that)
+- Writing in Richard's voice (use style-guide.md with Claude for that)
 - Deleting files in protected directories
 - Editing control files (agent specs, scripts, CLAUDE.md, Architecture.md)
 
@@ -856,7 +856,7 @@ Emojis go in H1 headings ONLY — filenames stay clean for wikilinks. All agents
 
 ## The Reflection Pipeline
 
-For Usman's brain dumps and personal reflections:
+For Richard's brain dumps and personal reflections:
 
 ```
 Voice memo / text ──→ Inbox (raw, untouched)
@@ -876,7 +876,7 @@ Voice memo / text ──→ Inbox (raw, untouched)
                      Beliefs get challenged or supported
 ```
 
-**Key difference from current pipeline:** Reflections stay whole. They're not broken into atoms. They're evidence of how Usman thinks, and the Mirror uses them as data.
+**Key difference from current pipeline:** Reflections stay whole. They're not broken into atoms. They're evidence of how Richard thinks, and the Mirror uses them as data.
 
 ---
 
@@ -957,7 +957,7 @@ Meta/
 ├── Architecture.md          ← YOU ARE HERE
 ├── CLAUDE.md                ← vault rules (for all agents)
 ├── MANIFEST.md              ← auto-generated vault index
-├── style-guide.md           ← Usman's voice for AI drafting
+├── style-guide.md           ← Richard's voice for AI drafting
 ├── Agents/
 │   ├── Extractor.md         ← deep extraction from inbox notes
 │   ├── Reviewer.md          ← QA after extraction
@@ -1019,7 +1019,7 @@ Meta/
 ├── handoffs/              ← Claude→Codex handoff files (audit trail)
 ├── research/
 │   ├── pending/            ← question files awaiting Telegram reply
-│   ├── answers/            ← Telegram replies from Usman
+│   ├── answers/            ← Telegram replies from Richard
 │   └── temp/               ← perspective outputs (cleaned after synthesis)
 └── README/
     └── People Schema.md
@@ -1047,7 +1047,7 @@ Canon/
 
 ## Sprint Board — Agent Coordination
 
-The sprint board (`Meta/sprint/SPRINT.md`) is how Claude, Codex, and Usman coordinate work without Usman being the relay.
+The sprint board (`Meta/sprint/SPRINT.md`) is how Claude, Codex, and Richard coordinate work without Richard being the relay.
 
 ### Structure
 
@@ -1078,13 +1078,13 @@ Each task has machine-readable YAML: `assignee`, `reviewer`, `anchor`, `done_cri
 
 ### Proposals
 
-Any agent can propose work by writing to `Meta/sprint/proposals/`. This is how AI becomes a thinking partner, not just an executor. Codex sees a pattern in the codebase → proposes a fix. Claude sees a strategic gap → proposes a feature. Usman reviews and decides what becomes a real task.
+Any agent can propose work by writing to `Meta/sprint/proposals/`. This is how AI becomes a thinking partner, not just an executor. Codex sees a pattern in the codebase → proposes a fix. Claude sees a strategic gap → proposes a feature. Richard reviews and decides what becomes a real task.
 
 ### Roles
 
 | Role | Who | What they do |
 |------|-----|-------------|
-| Product owner | Usman | Decides what matters. Reviews. Approves. |
+| Product owner | Richard | Decides what matters. Reviews. Approves. |
 | Architect + reviewer | Claude | Creates tasks with contracts. Reviews completed work. |
 | Builder + tester | Codex | Picks up tasks. Builds. Runs validation. |
 | Proposer | Anyone | Writes proposals. Best ideas come from anywhere. |
@@ -1140,5 +1140,5 @@ The vault's history is its insurance policy. Three layers ensure no agent or acc
 2. **Trust the system, keep the receipts.** No-brainers execute without asking. But everything is in git, everything has an undo window, and the Mirror watches for drift. Trust is earned by audit trails, not permission prompts.
 3. **ADHD-aware design.** One step at a time. Lower activation energy. Surface the next action, not the full plan. Nudge, don't nag. The "decide whether to decide" tax is the enemy.
 4. **Multi-model by design.** Don't lock into one provider. Claude for judgment, Codex for code, future models for whatever they're best at. The vault is the constant; the agents are interchangeable.
-5. **Human-readable where it helps, machine-dense where it doesn't.** Canon entries are for Usman to read. Agent specs, manifests, and review queues are for agents. Both are valid.
-6. **The strategy tool is born here.** This personal system is the prototype. What works for Usman's brain will work for others. But don't build "for the product" — build for yourself, and the product will emerge.
+5. **Human-readable where it helps, machine-dense where it doesn't.** Canon entries are for Richard to read. Agent specs, manifests, and review queues are for agents. Both are valid.
+6. **The strategy tool is born here.** This personal system is the prototype. What works for Richard's brain will work for others. But don't build "for the product" — build for yourself, and the product will emerge.

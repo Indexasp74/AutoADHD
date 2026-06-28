@@ -63,9 +63,8 @@ CANON_INDEX="$(cat "$VAULT_DIR/Meta/MANIFEST.md" 2>/dev/null || true)"
 PROMPT="You are the EXTRACTOR agent for this Obsidian vault.
 
 ## STEP 1: Read these files (in this order)
-1. Read .claude/skills/vault-extractor/SKILL.md — the complete extraction rulebook
+1. Read .claude/skills/vault-extractor/SKILL.md — the complete extraction rulebook (entity types, Secondary Entity Pass, Whisper artifact matching, the 9-line ## Extracted schema, self-check, and known violation patterns are all here)
 2. Read .claude/skills/vault-writer/SKILL.md — note format, frontmatter, emoji headings, provenance
-3. Read Meta/Agents/Extractor.md — your agent spec and role-specific rules
 
 ## STEP 2: Existing Canon entries (your DEDUP source of truth)
 The index below already lists EVERY existing Canon entry and its known aliases.

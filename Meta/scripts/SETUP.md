@@ -108,7 +108,7 @@ VaultSandbox/
 │   ├── Architecture.md       # System blueprint (all agents read this)
 │   ├── changelog.md          # Timeline of all agent activity
 │   └── review-queue/         # Items awaiting human approval (Tier 3 gate)
-├── Usman/                    # Personal notes, journals
+├── Richard/                    # Personal notes, journals
 ├── Readwise/                 # Readwise synced highlights
 ├── 🚀 Startup/              # Startup-related notes
 ├── 🧠 On Strategy/          # Strategy thinking
@@ -540,7 +540,7 @@ Full agent specs live in `Meta/Agents/`. Summary:
 
 ### Task-Enricher
 - Triggered by: daily 8:30 AM + on new action creation
-- Does: breaks actions into ADHD-friendly sub-steps, drafts messages in Usman's voice, nudges stale items via Telegram, priority scoring
+- Does: breaks actions into ADHD-friendly sub-steps, drafts messages in Richard's voice, nudges stale items via Telegram, priority scoring
 - Output: enriched action notes + Telegram nudges
 
 ### Researcher
@@ -583,7 +583,7 @@ tags:                            # for quick scanning/clustering
   - work
   - hamburg
 linked:                          # explicit relationships
-  - "[[Usman Kotwal]]"
+  - "[[Richard Lee]]"
 locked:                          # human-verified fields AI must not change
   - born
 ---

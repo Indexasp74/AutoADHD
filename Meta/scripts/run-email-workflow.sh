@@ -8,7 +8,7 @@
 #   1. Find the action (fuzzy match by name)
 #   2. Find linked person(s) and their email
 #   3. Read style guide
-#   4. Call Claude CLI to draft the email in Usman's voice
+#   4. Call Claude CLI to draft the email in Richard's voice
 #   5. Write operation file to Meta/operations/pending/
 #   6. Telegram notification fires automatically (vault-bot.py watches pending/)
 #
@@ -80,7 +80,7 @@ LINKED_PEOPLE=$(grep -A 50 '^linked:' "$ACTION_PATH" \
     | grep '^[[:space:]]*-' \
     | grep -oP '\[\[([^]|]+)' \
     | sed 's/\[\[//' \
-    | grep -v "Usman Kotwal")
+    | grep -v "Richard Lee")
 
 RECIPIENT_EMAIL=""
 RECIPIENT_NAME=""
@@ -160,11 +160,11 @@ To: ${RECIPIENT_NAME} <${RECIPIENT_EMAIL}>
 Action: ${ACTION_NAME}
 Output goal: ${ACTION_OUTPUT}
 
-This is a dry-run placeholder. In production, Claude CLI drafts this in Usman's voice using the style guide and action context."
+This is a dry-run placeholder. In production, Claude CLI drafts this in Richard's voice using the style guide and action context."
     echo "  Mode: DRY RUN (skipping Claude CLI)"
 else
     # Call Claude CLI to draft the email
-    DRAFT_PROMPT="You are drafting an email from Usman Kotwal to ${RECIPIENT_NAME}.
+    DRAFT_PROMPT="You are drafting an email from Richard Lee to ${RECIPIENT_NAME}.
 
 ## Context
 Here is the action that triggered this email:
@@ -177,10 +177,10 @@ ${RECIPIENT_CONTEXT}
 ${STYLE_GUIDE}
 
 ## Instructions
-- Write the email in Usman's voice (see style guide above)
+- Write the email in Richard's voice (see style guide above)
 - Keep it short — 3-8 sentences max
 - Warm but purposeful. Not corporate.
-- If the action involves a German-speaking person and the context is personal, write in German. Otherwise English.
+- If the action involves a person who speaks another language and the context is personal, write in that language. Otherwise English.
 - Output ONLY the email in this exact format:
 
 SUBJECT: <one line>

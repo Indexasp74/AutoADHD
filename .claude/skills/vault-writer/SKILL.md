@@ -111,18 +111,18 @@ source: voice
 first_mentioned: 2026-03-16
 due: 2026-04-30
 start: 2026-03-20
-owner: "[[Usman Kotwal]]"
-output: "Having a valid German driving license"
+owner: "[[Richard Lee]]"
+output: "Having a valid driving license"
 mentions:
   - 2026-03-16 - Voice - mercado.md
 linked:
-  - "[[Usman Kotwal]]"
+  - "[[Richard Lee]]"
 ---
 ```
 
 Field rules:
 - `mentions`: MUST be actual filenames, never placeholders like "multiple memos"
-- `owner`: defaults to `"[[Usman Kotwal]]"` unless someone else is explicitly responsible
+- `owner`: defaults to `"[[Richard Lee]]"` unless someone else is explicitly responsible
 - `due`: use approximate dates rather than blank ("by summer" → `2026-09-01`)
 - `output`: one-sentence "done looks like" — prefer concrete over blank
 

@@ -293,7 +293,7 @@ Read the action below and add an ## Enrichment section to make it immediately ac
 
 ## Rules
 1. Read Meta/Agents/Task-Enricher.md for your full spec
-2. Read Meta/style-guide.md for Usman's voice
+2. Read Meta/style-guide.md for Richard's voice
 3. Look up linked people in Canon/People/ for real contact info (phone, email)
 4. Do NOT invent phone numbers or facts
 5. Write ONE concrete next step (under 10 words)

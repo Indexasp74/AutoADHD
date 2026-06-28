@@ -45,7 +45,7 @@ Reply with any specific angle you want explored.
 Otherwise I'll run with what I've got.
 ```
 
-**No blocking timeout.** The Researcher fires immediately. If Usman replies before the synthesis pass (Phase 3), his input gets incorporated. If he doesn't, the research runs with context from the vault.
+**No blocking timeout.** The Researcher fires immediately. If Richard replies before the synthesis pass (Phase 3), his input gets incorporated. If he doesn't, the research runs with context from the vault.
 
 To check for a reply, the script writes a question file to `Meta/research/pending/` and checks for an answer file in `Meta/research/answers/` before the synthesis pass.
 
@@ -55,7 +55,7 @@ Before spawning perspectives, the Researcher reads:
 - The triggering action/note (full content + frontmatter)
 - All wikilinked notes (1 hop deep)
 - Relevant vault context (beliefs, decisions, reflections that touch the topic)
-- Any Telegram reply from Usman (if received)
+- Any Telegram reply from Richard (if received)
 
 This context becomes the **brief** that all perspective agents receive.
 
@@ -92,7 +92,7 @@ The Researcher picks 3 lenses based on the topic:
 
 #### Custom Perspectives
 
-Usman can request specific lenses via Telegram:
+Richard can request specific lenses via Telegram:
 - "research from a designer's perspective" → adds a Design lens
 - "what would Buffett think" → adds a Buffett investment lens
 - "compare German vs US approach" → adds two cultural lenses
@@ -121,7 +121,7 @@ Each perspective run writes a temp file:
 
 ### Phase 3: Synthesis Pass
 
-A synthesis run reads ALL perspective outputs + any Telegram reply from Usman, then produces the research article.
+A synthesis run reads ALL perspective outputs + any Telegram reply from Richard, then produces the research article.
 
 The synthesis agent has this directive:
 - Find where perspectives **agree** (these are likely true)
@@ -273,7 +273,7 @@ Canon/Actions/
 Meta/
 └── research/
     ├── pending/     → question files awaiting Telegram reply
-    ├── answers/     → Telegram replies from Usman
+    ├── answers/     → Telegram replies from Richard
     └── temp/        → perspective outputs (cleaned up after synthesis)
 ```
 
@@ -324,8 +324,8 @@ Task-Enricher ──→ sets needs-research ──→ Researcher (Codex)
 
 ## What Success Looks Like
 
-- An action like "Research strategy tool competitors" goes from vague intention to a rich, multi-perspective article in Thinking/Research/ — without Usman having to open a browser
+- An action like "Research strategy tool competitors" goes from vague intention to a rich, multi-perspective article in Thinking/Research/ — without Richard having to open a browser
 - Research articles become reference material that the Thinker and Mirror can cite
-- The Contrarian perspective regularly surfaces things Usman wouldn't have thought of
+- The Contrarian perspective regularly surfaces things Richard wouldn't have thought of
 - Research confidence levels are honest — a "low confidence" article is more useful than a fake "high confidence" one
 - The gap between "I should look into X" and "here's what I found" drops from weeks to hours

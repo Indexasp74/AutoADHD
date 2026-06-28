@@ -10,7 +10,7 @@ source: ai-generated
 # Reviewer Agent
 
 ## Job
-Quality control. Check extraction completeness and vault integrity. If there are unclear things, check with Usman by surfacing it with the weekly briefing agent [[Briefing]]. Or let it surface on Cowork. 
+Quality control. Check extraction completeness and vault integrity. If there are unclear things, check with Richard by surfacing it with the weekly briefing agent [[Briefing]]. Or let it surface on Cowork. 
 
 ## When It Runs
 - After every Extractor pass (part of voice memo pipeline)
@@ -91,7 +91,7 @@ When you find facts that need human verification, add them to the review queue:
 ```bash
 ./Meta/scripts/queue-review.sh "Canon/People/Someone.md" "field" "value" "reason"
 ```
-The Telegram bot sends these to Usman. He confirms, corrects, or skips. Confirmed fields get locked.
+The Telegram bot sends these to Richard. He confirms, corrects, or skips. Confirmed fields get locked.
 
 ## Fixes
 The Reviewer can fix simple issues directly:

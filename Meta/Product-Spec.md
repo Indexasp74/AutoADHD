@@ -160,7 +160,7 @@ The core loop. Everything else is built on top of this.
 
 **User feels:** Nothing yet — this is invisible. But the 📝 notification tells them "your words are now text."
 
-**Technical:** Whisper medium model, German language default. Creates markdown note in `Inbox/Voice/` with `## Raw` section (read-only). Sends Telegram: "📝 Voice transcribed (247 words)..."
+**Technical:** Whisper medium model, English language default. Creates markdown note in `Inbox/Voice/` with `## Raw` section (read-only). Sends Telegram: "📝 Voice transcribed (247 words)..."
 
 **Delight:** The notification includes word count. Small detail, but it signals "I actually processed your content, not just filed it."
 
