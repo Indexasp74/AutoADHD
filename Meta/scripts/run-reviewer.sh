@@ -36,11 +36,18 @@ EVENTS_COUNT=$(find Canon/Events/ -name "*.md" -type f 2>/dev/null | wc -l | tr 
 CONCEPTS_COUNT=$(find Canon/Concepts/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 ACTIONS_COUNT=$(find Canon/Actions/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 
-# Get notes to review — in voice pipeline mode, only review the new note (fast path)
-if [ "${VAULT_AGENT_CONTEXT:-}" = "voice-pipeline" ] && [ -n "${1:-}" ]; then
-    # Voice pipeline passes the specific note to review
+# Single-note fast path: callers that hand off one note at a time (the voice
+# pipeline, and drip-extract's per-note loop) set VAULT_AGENT_CONTEXT to say so
+# and own the commit themselves — reviewing only that note keeps each call fast
+# and cheap instead of falling through to "review last 10" on every note.
+case "${VAULT_AGENT_CONTEXT:-}" in
+    voice-pipeline|drip-extract) SINGLE_NOTE_MODE=1 ;;
+    *) SINGLE_NOTE_MODE=0 ;;
+esac
+
+if [ "$SINGLE_NOTE_MODE" = "1" ] && [ -n "${1:-}" ]; then
     RECENT="$1"
-    echo "  Voice pipeline mode: reviewing only $(basename "$1")"
+    echo "  Single-note mode ($VAULT_AGENT_CONTEXT): reviewing only $(basename "$1")"
 else
     # Standalone mode: review last 10 extracted notes
     RECENT=$(grep -rl "status: extracted" Inbox/ 2>/dev/null | sort -r | head -10)
@@ -149,8 +156,8 @@ fi
 FIXES=$(agent_git diff --name-only "$HEAD_BEFORE_RUN" -- Canon/ 2>/dev/null | wc -l | tr -d ' ')
 "$SCRIPT_DIR/log-change.sh" "Reviewer" "QA pass: ${FIXES} files touched, reviewed $EXTRACTED_COUNT extracted notes"
 
-if [ "${VAULT_AGENT_CONTEXT:-}" = "voice-pipeline" ]; then
-    echo "[$TIMESTAMP] Reviewer complete (voice pipeline mode; commit handled by caller)."
+if [ "$SINGLE_NOTE_MODE" = "1" ]; then
+    echo "[$TIMESTAMP] Reviewer complete (single-note mode; commit handled by caller)."
     exit 0
 fi
 

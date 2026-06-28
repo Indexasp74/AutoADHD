@@ -41,6 +41,7 @@ Automatically after every new voice memo is transcribed. Can also be run manuall
    - **Actions**: Tasks, intentions, "should do", "want to", "need to". Create in Canon/Actions/ or update existing.
    - **Places**: Locations mentioned with context (cities, buildings, neighborhoods, addresses). Create in Canon/Places/ or update existing.
    - **Organizations**: Companies, institutions, teams, shops, programs, and communities mentioned with enough context to matter. Create in `Canon/Organizations/` or update existing.
+   - **Projects**: Ongoing personal or work initiatives with their own arc (a repo, a build, a multi-step effort). Create in `Canon/Projects/` or update existing, with a `## Evolution` section like other living types.
    - **Thinking notes**: Reflections, beliefs, or emerging ideas that belong in `Thinking/`. Create or update when the note clearly contains them.
 4. Add wikilinks between ALL related notes
 5. Update the inbox note status from `inbox` to `extracted`
@@ -242,6 +243,7 @@ After every extraction pass on an inbox note, you MUST write an `## Extracted` s
 - Decisions: [[Decision Name]] | none
 - Places: [[Place Name]] | none
 - Organizations: [[Organization Name]] | none
+- Projects: [[Project Name]] | none
 - Thinking: [[Reflection or Emerging Note]] | none
 ```
 
@@ -283,7 +285,7 @@ These are the most common schema failures found in past extraction passes. All o
 ```
 This invents the `Updated:` label, mixes narrative with schema, and cannot be parsed.
 
-### ✅ Right: Standard 8-line schema
+### ✅ Right: Standard 9-line schema
 ```markdown
 ## Extracted
 
@@ -294,8 +296,11 @@ This invents the `Updated:` label, mixes narrative with schema, and cannot be pa
 - Decisions: none
 - Places: none
 - Organizations: none
+- Projects: none
 - Thinking: [[Thinking About Focus]]
 ```
+
+`Projects:` was added 2026-06-24 — before that, agents had to improvise a 9th line for `Canon/Projects/` entries (e.g. appending `- Projects: [[PMP Exam Simulator]]` after `Thinking:`), which technically broke the "exact labels and order" rule even though the content was correct. If you find older extracted notes with an out-of-order or appended `Projects:` line, that's this gap, not agent error.
 
 ### ❌ Wrong: Provenance without `from:` field
 ```markdown

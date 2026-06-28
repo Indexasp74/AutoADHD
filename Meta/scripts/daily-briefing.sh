@@ -158,7 +158,10 @@ if os.path.exists(rq_dir):
         if f.endswith('.md'):
             fm = read_frontmatter(os.path.join(rq_dir, f))
             status = fm.get('status', '')
-            if status == 'pending' or not status:
+            # "Still needs attention" = pending, open, sent, or missing — not just
+            # the canonical queue-review.sh value, since hand-filed items (e.g.
+            # retro itself) have used `open` and would otherwise never surface here.
+            if status in ('pending', 'open', 'sent') or not status:
                 name = fm.get('name', f[:-3])
                 review_items.append(f"📋 {name}")
 
@@ -562,7 +565,7 @@ if os.path.exists(rq_dir):
         if not f.endswith('.md'):
             continue
         fm = read_frontmatter(os.path.join(rq_dir, f))
-        if fm.get('status', '') in ('', 'pending'):
+        if fm.get('status', '') in ('', 'pending', 'open', 'sent'):
             count += 1
 moyo_path = os.path.join(vault, 'Canon', 'Events', '2026-03-24 - Moyo Startup Direction Meeting.md')
 if os.path.exists(moyo_path):
@@ -712,13 +715,14 @@ PYEOF
         fi
     done
 
-    # Stale reviews
+    # Stale reviews ("still needs attention" = pending, open, or sent — see
+    # run-retro.sh's STALE_REVIEWS for why `open` is included here too)
     STALE_REVIEWS=$(find "$VAULT_DIR/Meta/review-queue" -name "*.md" -mtime +3 2>/dev/null | while read f; do
-        grep -l "status: sent\|status: pending" "$f" 2>/dev/null
+        grep -l "status: sent\|status: pending\|status: open" "$f" 2>/dev/null
     done | wc -l | tr -d ' ')
 
     # Build digest query for Advisor
-    DIGEST_QUERY="MONDAY WEEKLY DIGEST — summarize this week for Usman in 4-6 sentences.
+    DIGEST_QUERY="MONDAY WEEKLY DIGEST — summarize this week for Richard in 4-6 sentences.
 
 Stats: $WEEK_COMMITS commits, $WEEK_VOICE voice memos, $WEEK_SESSIONS advisor sessions, $OPEN_COUNT open actions.
 Overdue actions:

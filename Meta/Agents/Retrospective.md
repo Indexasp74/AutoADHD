@@ -69,6 +69,10 @@ Attendees: Extractor, Reviewer, Thinker, Briefing
 ---
 ```
 
+## Review Queue Item Convention
+
+When this retro authors a `Meta/review-queue/*.md` item directly (not via `queue-review.sh`), use `status: pending` — not `status: open` or any other ad hoc value. `daily-briefing.sh`'s Tier 🔴 lister and weekly digest, and `run-retro.sh`'s own `STALE_REVIEWS` count, only match `status: sent`/`pending` (or, in the daily Tier 🔴 lister, `pending`/missing). An item filed with `status: open` is invisible to all three. Evidence: the 2026-06-23 retro filed `extraction-backlog-retry.md` and `triage-skips-extraction.md` with `status: open`; both went unseen by the human-facing briefing for a full day until the 2026-06-24 retro found and resolved them directly. Mark items `status: resolved` (with a `resolved: DATE` field and a short blockquote summary at the top, see `20260616-135900-heartbeat-monitoring.md` for the pattern) once the underlying issue is fixed — do not just delete them.
+
 ## Self-Modification Rules
 The retro CAN make changes to improve the system:
 - Edit agent specs in Meta/Agents/ (adjust prompts, add rules, remove noise)

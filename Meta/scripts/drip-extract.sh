@@ -220,6 +220,29 @@ for note in "${QUEUE[@]}"; do
             EXTRACTED=$((EXTRACTED+1)); CONSEC_FAIL=0
             NOTES_THIS_WINDOW=$((NOTES_THIS_WINDOW+1))
             agent_write_heartbeat "drip-extract"
+
+            # QA pass — mirrors process-voice-memo.sh's Extractor->Reviewer chain,
+            # which this script previously skipped (every drip-extracted note got
+            # zero QA). VAULT_AGENT_CONTEXT=drip-extract (exported above) makes
+            # run-reviewer.sh fast-path to just this note and skip its own commit;
+            # the 5-min alarm keeps a hung Reviewer call from stalling the pacing
+            # budget. Non-fatal: QA failures don't undo the extraction.
+            log "  -> running Reviewer QA pass..."
+            rev_out=$(perl -e 'alarm 300; exec @ARGV' /bin/bash "$SCRIPT_DIR/run-reviewer.sh" "$note" 2>&1)
+            rev_rc=$?
+            if [ "$rev_rc" -ne 0 ]; then
+                log "  -> Reviewer failed/timed out (rc=$rev_rc, non-fatal): $(printf '%s' "$rev_out" | tail -2 | tr '\n' ' ')"
+            fi
+            if ! agent_assert_no_forbidden_worktree_paths "drip-extract" \
+                    Meta/Agents Meta/scripts Meta/research Thinking/Research \
+                    CLAUDE.md HOME.md AGENTS.md Meta/Architecture.md Meta/agent-runtimes.conf; then
+                log "  -> Reviewer left forbidden worktree paths — not auto-committing, left for human review."
+                notify "⚠️ drip-extract: Reviewer touched forbidden paths reviewing $(basename "$note") — left uncommitted."
+            else
+                agent_stage_and_commit "[Pipeline] review: drip-extract QA pass for $(basename "$note")" \
+                    Canon/ Thinking/ Meta/AI-Reflections/ Meta/review-queue/ Meta/changelog.md
+            fi
+
             note_done=1
             break
         fi

@@ -2,27 +2,52 @@
 # queue-review.sh — Add an item to the review queue
 # Usage: ./queue-review.sh "Canon/People/Alex Chen.md" "born" "1992" "Extracted from voice memo — verify birthyear"
 #
-# Items get pushed to Telegram by the bot after pipeline runs.
+# Writes one file per item to Meta/review-queue/ — the directory HOME.md,
+# daily-briefing.sh, and the retro's stale-review check all scan. vault-bot.py
+# picks up files with status: pending from there and pushes them to Telegram
+# with approve/reject/skip buttons.
+
+set -euo pipefail
 
 VAULT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-QUEUE="$VAULT_DIR/Meta/review-queue.md"
+QUEUE_DIR="$VAULT_DIR/Meta/review-queue"
+mkdir -p "$QUEUE_DIR"
 
 FILE="${1:?Usage: queue-review.sh FILE FIELD VALUE REASON}"
 FIELD="${2:?Usage: queue-review.sh FILE FIELD VALUE REASON}"
 VALUE="${3:?Usage: queue-review.sh FILE FIELD VALUE REASON}"
 REASON="${4:-AI-extracted, needs verification}"
 
-DATE=$(date +%Y-%m-%d)
-TIME=$(date +%H:%M)
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+CREATED=$(date +%Y-%m-%dT%H:%M)
+BASE="$(basename "$FILE" .md)"
+SLUG="$(echo "${BASE}-${FIELD}" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-')"
+OUT="$QUEUE_DIR/${TIMESTAMP}-${SLUG}.md"
 
-cat >> "$QUEUE" << EOF
-
+cat > "$OUT" << EOF
 ---
+type: review-item
+name: Confirm $FIELD on $BASE
+created: $CREATED
+source: extractor
+urgency: low
 status: pending
-date: $DATE
 file: $FILE
 field: $FIELD
 value: $VALUE
-reason: $REASON
 ---
+
+# 🟡 Confirm: $FIELD on $BASE
+
+## What needs to happen
+
+$REASON
+
+Proposed value: \`$FIELD: $VALUE\`
+
+## Source
+
+Flagged by the Extractor via \`queue-review.sh\` on $CREATED.
 EOF
+
+echo "Queued: $OUT"

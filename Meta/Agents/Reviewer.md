@@ -22,7 +22,7 @@ Quality control. Check extraction completeness and vault integrity. If there are
    - Count someone as mentioned if their name appears anywhere, even inside a relationship phrase like "Emil is Melisa's brother"
    - Reflection-heavy memos are not exempt. If the raw transcript includes named people, places, organizations, or concrete events as part of scene-setting or family logistics, those still count toward completeness
    - Are events captured in Canon/Events/?
-   - Are concepts, decisions, places, organizations, and `Thinking/` outputs captured when the note clearly contains them?
+   - Are concepts, decisions, places, organizations, projects, and `Thinking/` outputs captured when the note clearly contains them?
    - Are actions/tasks captured in Canon/Actions/?
    - Score each note 1-5 on extraction completeness
 
@@ -33,9 +33,10 @@ Quality control. Check extraction completeness and vault integrity. If there are
    - Recently touched Canon/Thinking notes must also keep a type-appropriate emoji H1 heading; a file that jumps straight from frontmatter into `##` sections still fails note-format integrity
 
 3. **Extracted Block Schema**: Every extracted inbox note must have the standard `## Extracted` block with these exact labels and order:
-   - `People`, `Events`, `Concepts`, `Actions`, `Decisions`, `Places`, `Organizations`, `Thinking`
+   - `People`, `Events`, `Concepts`, `Actions`, `Decisions`, `Places`, `Organizations`, `Projects`, `Thinking`
    - Each line must contain wikilinks or the literal word `none`
-   - Even no-op test notes and garbled-audio notes still need all eight lines with `none`; parenthetical shorthand is invalid
+   - Even no-op test notes and garbled-audio notes still need all nine lines with `none`; parenthetical shorthand is invalid
+   - `Projects:` was added 2026-06-24. Notes extracted before that date may have an appended out-of-order `Projects:` line (after `Thinking:`) instead of in the correct slot — flag it as a schema drift to normalize, not as a fabricated entry, since the underlying extraction was correct
    - Every listed wikilink must resolve to a real note or alias. Pay special attention to `Thinking/` notes whose filenames may include a `Journal - YYYY-MM-DD - ...` prefix
    - Flag blocks that list notes which were not actually created or materially updated in that extraction pass. Use `updated`/`created`, `changelog`, `mentions`, or matching `<!-- source: ... -->` evidence on the target note
    - Do not let participant names or linked context inflate the block. A person or place mentioned only inside a newly created event/action does NOT belong on `People:` or `Places:` unless that note itself also changed in the same pass
@@ -108,5 +109,11 @@ The Reviewer can fix simple issues directly:
 - Report complex issues to review log
 - Queue uncertain facts for human review (see above)
 
+## Mandatory: Always Log, Even When Clean
+
+Every Reviewer pass MUST append an entry to `Meta/AI-Reflections/review-log.md` — including passes that find zero issues. A clean pass logs a one-liner: `## Review: [TIMESTAMP]\nScore: 5/5 — clean, no issues found.` Silence is not a valid Reviewer output; it is indistinguishable from the Reviewer never having run.
+
+This rule exists because `review-log.md` received zero entries between 2026-01-25 and 2026-06-23 despite the Reviewer heartbeat firing regularly across that window, including for voice-pipeline passes that created multiple new Canon entries (non-trivial — not covered by the "skip when Extractor made 0 Canon changes" optimization in `run-reviewer.sh`). A heartbeat proves the process executed; it does not prove the review log was written. Do not treat heartbeat health as evidence that this rule is being followed — check `review-log.md` directly.
+
 ## Output
-Appends findings to `Meta/AI-Reflections/review-log.md` + fixes simple issues + git commit.
+Appends findings to `Meta/AI-Reflections/review-log.md` (every pass, no exceptions — see above) + fixes simple issues + git commit.

@@ -138,16 +138,42 @@ fi
 FIXES=$(git diff --name-only "$HEAD_BEFORE_RUN" 2>/dev/null | wc -l | tr -d ' ')
 "$SCRIPT_DIR/log-change.sh" "Implementer" "Self-healing pass ($TRIGGER): ${FIXES} files touched"
 
-# Commit implementer-owned paths, including the changelog entry.
+# Commit implementer-owned paths, including the changelog entry. This list
+# was missing Meta/decisions-log.md and Meta/agent-runtimes.conf — both are
+# dual-tracked (vault repo AND engine repo, neither ignores them) but were
+# never staged here, so e.g. retro's daily decisions-log.md edits sat
+# uncommitted until something else happened to commit them. Fixed 2026-06-23.
 agent_stage_and_commit "[Implementer] fix: $TRIGGER run [$TIMESTAMP]" \
     Inbox/ \
     Canon/ \
     Thinking/ \
-    Meta/Agents/ \
     Meta/AI-Reflections/ \
     Meta/review-queue/ \
+    Meta/review-queue.md \
     Meta/MANIFEST.md \
-    Meta/changelog.md
+    Meta/changelog.md \
+    Meta/decisions-log.md \
+    Meta/agent-runtimes.conf
+
+# Engine-only paths (agent specs, scripts, control files): excluded from the
+# private vault repo by design (see agent_git's comment in lib-agent.sh —
+# "engine self-heals stay uncommitted in the public repo for human review").
+# In two-repo mode, agent_git always targets $VAULT_GIT_DIR, so staging these
+# here would just print "ignored" warnings and do nothing — skip the attempt
+# entirely. In single-repo mode (VAULT_GIT_DIR unset) this is the ONLY commit
+# path for these files; without it, Implementer's own script/spec fixes are
+# silently lost. Confirmed via `git log`: 4 prior Implementer runs (2026-06-16
+# through 19) logged fixes to daily-briefing.sh that never landed in any
+# commit, because this pathspec was missing entirely.
+if [ -z "${VAULT_GIT_DIR:-}" ]; then
+    agent_stage_and_commit "[Implementer] fix: $TRIGGER run [$TIMESTAMP] (engine)" \
+        Meta/Agents/ \
+        Meta/scripts/ \
+        Meta/Architecture.md \
+        CLAUDE.md \
+        HOME.md \
+        .gitignore
+fi
 
 # Build a rich summary of what changed
 CHANGED_FILES=$(git diff --name-only "$HEAD_BEFORE_RUN" 2>/dev/null || true)

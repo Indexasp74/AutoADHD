@@ -128,9 +128,12 @@ print(count)
 PYEOF
 )
 
-# Review queue backlog (items in sent/pending status older than 3 days)
+# Review queue backlog (items still needing attention, older than 3 days).
+# "Still needs attention" = pending, open, or sent — not just the canonical
+# queue-review.sh value (`pending`), since hand-filed items (e.g. retro itself)
+# have used `open` and would otherwise be invisible to this stat.
 STALE_REVIEWS=$(find "$VAULT_DIR/Meta/review-queue" -name "*.md" -mtime +3 2>/dev/null | while read f; do
-    grep -l "status: sent\|status: pending" "$f" 2>/dev/null
+    grep -l "status: sent\|status: pending\|status: open" "$f" 2>/dev/null
 done | wc -l | tr -d ' ')
 
 # Advisor session count this week
@@ -155,8 +158,19 @@ if [ -f "Meta/AI-Reflections/retro-log.md" ]; then
     RETRO_HISTORY=$(tail -100 "Meta/AI-Reflections/retro-log.md")
 fi
 
-# Get today's git activity
-GIT_TODAY=$(git log --since="$DATE" --oneline 2>/dev/null || echo "no commits today")
+# Get today's git activity. Two-repo mode (VAULT_GIT_DIR set) routes vault
+# CONTENT commits to a separate private repo — a plain `git log` here only
+# ever sees this engine repo and silently misses all extraction/briefing/
+# retro activity. Check both when VAULT_GIT_DIR is set.
+GIT_TODAY=$(git log --since="$DATE 00:00:00" --oneline 2>/dev/null || echo "no commits today")
+if [ -n "${VAULT_GIT_DIR:-}" ] && [ -d "$VAULT_GIT_DIR" ]; then
+    VAULT_CONTENT_TODAY=$(git --git-dir="$VAULT_GIT_DIR" --work-tree="$VAULT_DIR" log --since="$DATE 00:00:00" --oneline 2>/dev/null || echo "no commits today")
+    GIT_TODAY="Engine repo:
+$GIT_TODAY
+
+Vault content repo (\$VAULT_GIT_DIR):
+$VAULT_CONTENT_TODAY"
+fi
 
 # Load decisions log for tripwire checking + summary regeneration
 DECISIONS_LOG=""

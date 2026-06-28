@@ -216,6 +216,7 @@ The vault needs these files from Meta/scripts/:
 |--------|---------|------|
 | `process-voice-memo.sh` | Worker: transcribe claimed audio → create inbox note → extract → review → commit | Called by watcher |
 | `retry-failed.sh` | Re-run extraction on inbox notes marked `status: failed` | On-demand recovery |
+| `drip-extract.sh` | Budget-paced backlog drainer: sweeps all of `Inbox/` for `status: failed/inbox/transcribed`, extracts ~4 notes per ~5h Pro session window, rests between windows, stops by ~8:30 AM and resumes the next night. Calls `run-extractor.sh` then `run-reviewer.sh` per note (single-note fast path, 5-min alarm, non-fatal QA), mirroring `process-voice-memo.sh`'s chain | Cron, 1:00 AM ET daily (no-op when backlog is empty) |
 | `invoke-agent.sh` | Route each agent to Claude (or Codex) based on config; fallback chains, model variants, JSON output, token tracking | Called by agent runners |
 | `vault-lib.py` | Shared Python library: Anthropic SDK streaming, config parsing, wikilinks, frontmatter | Imported by vault-bot.py |
 | `lib-agent.sh` | Shared safety: clean-tree checks, git lock cleanup, locking with opt-in retry (3x, 30s, Telegram alert), scoped commits | Called by agent runners |
@@ -252,11 +253,16 @@ The vault needs these files from Meta/scripts/:
 | `create-handoff.sh` | Write Claude→Codex handoff file + Telegram notify | Called by Claude on token limit |
 | `run-handoff.sh` | Execute handoff: Codex runs, validation, commit | Human-triggered after handoff |
 | `pre-commit-guard.sh` | Git hook: block dangerous deletes + agent control edits | Always active (git hook) |
+| `push-vault.sh` | Two-repo mode only: push the private vault repo (`$VAULT_GIT_DIR`) to its remote | Every 10 min (cron), no-op in single-repo mode |
 
 Make all shell scripts executable:
 ```bash
 chmod +x Meta/scripts/*.sh
 ```
+
+**Two-repo mode (optional):** Set `VAULT_GIT_DIR` in `.env` to a separate bare repo (e.g. `$HOME/.autoadhd/vault.git`) to route vault-content commits (Canon/Inbox/Thinking/Meta runtime) to a private repo, keeping this engine repo public-shareable. `lib-agent.sh`'s `agent_git` wrapper targets `$VAULT_GIT_DIR` when set; unset = single-repo mode (unchanged). `push-vault.sh` pushes the private repo every 10 min via cron. When two-repo mode is on, `git log` in the engine repo checkout will NOT show vault-content activity — check the private repo (`git --git-dir="$VAULT_GIT_DIR" --work-tree="$VAULT_DIR" log`) for actual extraction/briefing/retro commit history. See `Meta/Two-Repo-Setup.md`.
+
+**Drip-extract cron schedule (added 2026-06-24):** `install-cron.sh` schedules `drip-extract.sh` at 1:00 AM (the box's local timezone — `America/New_York`, so this is 1 AM ET, the chosen low-usage window) via `crontab`, separate from the launchd schedule below. It is the recurring-cadence fix for backlog buildup (see the "Subscription vs. metered billing" note): rather than waiting for a human to run `retry-failed.sh` after an outage, it drains the failed/unprocessed backlog automatically every night, paced to stay shy of the Pro session limit. As of 2026-06-24 (Implementer pass, same day as the gap was found) it also runs `run-reviewer.sh` on each note right after extraction succeeds — `run-reviewer.sh` recognizes `VAULT_AGENT_CONTEXT=drip-extract` as a single-note fast path (same mechanism as the voice pipeline's `voice-pipeline` context) and skips its own commit; `drip-extract.sh` does the fallback commit for Canon/Thinking/AI-Reflections/review-queue/changelog, after checking the Reviewer didn't touch a forbidden control path. A hung Reviewer call is capped at 5 minutes and treated as non-fatal QA, not a pipeline failure.
 
 Runtime routing is configured in:
 
@@ -264,7 +270,7 @@ Runtime routing is configured in:
 Meta/agent-runtimes.conf
 ```
 
-Current pattern (2026-04-06 — all on Claude CLI, covered by Max subscription):
+Current pattern (2026-04-06 — all on Claude CLI; updated 2026-06-23 — owner is on Claude Pro, not Max):
 - `EXTRACTOR=claude`
 - `REVIEWER=claude`
 - `IMPLEMENTER=claude`
@@ -279,6 +285,8 @@ Current pattern (2026-04-06 — all on Claude CLI, covered by Max subscription):
 - `ADVISOR_TRIAGE=claude:haiku` (per-mode override: fast/cheap for Telegram triage)
 
 Token usage is tracked per-agent in `Meta/agent-token-usage.jsonl`. Once we have enough cost data, cheaper agents may move back to Codex.
+
+**Subscription vs. metered billing (fixed 2026-06-23):** `cron-wrapper.sh` exports `ANTHROPIC_API_KEY` from `.env` for the Advisor SDK's benefit, but the Claude CLI honors that same env var even in the "subscription" strategy — silently billing metered API instead of the Pro/Max OAuth session. When the metered balance hit zero ("Credit balance is too low"), every cron-invoked agent failed for ~2-3 days (the 2026-06-20–22 extraction backlog). `invoke-agent.sh` Strategy 1 now unsets `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` before invoking the CLI so it uses the subscription login; set `PREFER_API_BILLING=1` to opt back into metered billing deliberately.
 
 ### Step 3.5: Skills (Just-in-Time Context for AI Agents)
 
