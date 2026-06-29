@@ -602,6 +602,16 @@ print(count)
 NYEOF
 ) || NEEDS_YOU="0"
 
+# Escalate a stale Retrospective heartbeat into the urgent push. heartbeat-check.sh
+# already names it specifically (❌ Retrospective: last ran Nh ago) in the full
+# briefing body, but that line never reached the "N items need you" Telegram
+# alert that's actually pushed — a multi-day self-healing-loop outage (Retro +
+# Implementer both silently skipping for 3 days, 2026-06-25/26/27) only ever
+# showed up as background noise in the note, not as something urgent.
+if printf '%s' "$HEARTBEAT" | grep -q '❌ Retrospective:'; then
+    NEEDS_YOU=$((NEEDS_YOU + 1))
+fi
+
 # macOS notification
 osascript -e "display notification \"${NEEDS_YOU} items need you. ${OPEN_COUNT} open actions.\" with title \"☀️ Vault Briefing\" subtitle \"$DAY_NAME, $DATE\"" 2>/dev/null || true
 

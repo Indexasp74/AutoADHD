@@ -100,6 +100,8 @@ Emoji in H1 ONLY — never in filenames (keeps wikilinks clean).
 ### Person (`Canon/People/`)
 Read `Meta/README/People Schema.md` for the full schema with field ordering. Key fields: `born`, `phone`, `email`, `city`, `employer`, `relationship`, `relationship_to`, `aliases`, `tags`, `linked`, `locked`.
 
+`tags:` is REQUIRED on every new Person note, even when empty (`tags: []`). Use the existing tag vocabulary (family, best-friend, close-friend, friend, work, startup, cofounder, colleague, former-colleague, manager, hamburg, berlin, career-crossroads, etc.) when the relationship is clear from context; leave `tags: []` rather than guessing when it isn't. A missing `tags:` field is a Reviewer-flagged defect — evidence: `Canon/People/Neal Stephenson.md` (created 2026-06-26) shipped with no `tags:` field at all, two days after an Implementer pass had backfilled the field onto every other existing entry — the backfill fixed the backlog but not the underlying creation habit.
+
 ### Action (`Canon/Actions/`)
 ```yaml
 ---

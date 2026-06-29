@@ -38,7 +38,19 @@ if [ -f "Meta/AI-Reflections/retro-log.md" ]; then
 fi
 
 if [ -n "$LAST_RETRO_DATE" ]; then
+    # Two-repo mode: vault CONTENT commits (extraction, briefing, etc.) land in
+    # $VAULT_GIT_DIR, not this engine repo. A plain `git log` here only ever
+    # saw engine-repo commits (rare — only human/Implementer engine edits),
+    # so on every night with real vault activity but no engine commit, this
+    # incorrectly read "no vault changes" and skipped the retro entirely.
+    # Confirmed against 2026-06-25/26/27: 0 engine commits each night, but
+    # 9 vault-content commits (Extractor/Briefing/Maintenance) across the
+    # same window — exactly the silently-skipped activity. Count both repos.
     COMMITS_SINCE=$(git log --since="$LAST_RETRO_DATE 21:00" --oneline -- . ':!Meta/AI-Reflections/retro-log.md' 2>/dev/null | wc -l | tr -d ' ')
+    if [ -n "${VAULT_GIT_DIR:-}" ] && [ -d "$VAULT_GIT_DIR" ]; then
+        VAULT_COMMITS_SINCE=$(git --git-dir="$VAULT_GIT_DIR" --work-tree="$VAULT_DIR" log --since="$LAST_RETRO_DATE 21:00" --oneline -- . ':!Meta/AI-Reflections/retro-log.md' 2>/dev/null | wc -l | tr -d ' ')
+        COMMITS_SINCE=$((COMMITS_SINCE + VAULT_COMMITS_SINCE))
+    fi
     if [ "$COMMITS_SINCE" -eq 0 ]; then
         echo "[$TIMESTAMP] No vault changes since last retro ($LAST_RETRO_DATE). Skipping."
         exit 0

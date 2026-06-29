@@ -32,6 +32,31 @@ purpose: Operational and architectural decisions logged by agents
 - **Checked:** `Meta/agent-feedback.jsonl` entries dated 2026-06-24 (12 total: 7 Extractor, 4 VoicePipeline, 1 Briefing) — zero failures, zero session/usage-limit or credit-balance errors. `drip-extract.sh` (shipped today) adds a further proactive mitigation by pacing extraction to stay shy of the Pro session window rather than reacting to 429s.
 - **Status:** active, tripwire not triggered. No action needed this cycle.
 
+## 2026-06-28 21:10 — Tripwire check: Pro-tier usage ceiling — still not triggered
+- **Checked:** All 89 `Meta/agent-feedback.jsonl` entries from the past week — zero failure/error/rate-limit/credit entries found. Holding.
+- **Status:** active, tripwire not triggered.
+
+## 2026-06-28 21:10 — Tripwire check: two-repo / since-date bug — confirmed fixed
+- **Checked:** Today's retro seed stats correctly showed real git activity ("2 commit(s) since last retro") for the first time since the bug was diagnosed, and `/tmp/vault-retro.log` shows no recurrence of the blank-section symptom on 2026-06-28. The 2026-06-24 Implementer fix (`--since="$DATE 00:00:00"`) holds.
+- **Status:** resolved, closing this tripwire.
+
+## 2026-06-28 21:10 — Tripwire check: review-queue status vocabulary — confirmed fixed
+- **Checked:** All 14 current `Meta/review-queue/*.md` items use only `pending`, `resolved`, or (legacy) values already covered by the broadened matchers — no `status: open` items found in this scan.
+- **Status:** resolved, closing this tripwire.
+
+## 2026-06-28 21:10 — REVISED: Reviewer-pipeline-coverage tripwire — the 2026-06-24 fix does not actually work
+- **Revises:** the "NEW — Reviewer pipeline coverage" tripwire opened by the 2026-06-24 retro and marked `status: resolved` by that day's Implementer pass.
+- **What happened:** The code-level wiring (drip-extract.sh calling run-reviewer.sh per note, with the VAULT_AGENT_CONTEXT=drip-extract fast path) is present exactly as described. In production it has failed on every single observed invocation — 3 for 3 on the one night (2026-06-27) drip-extract had a real backlog to process. `Meta/AI-Reflections/review-log.md` still has zero new entries; Reviewer's heartbeat was 125h stale (older than the fix itself) at the start of this retro. The failure log is truncated (`tail -2`) and hides the real error — I could reproduce a plausible cause (vault-agent-pipeline lock contention with a concurrently running agent) manually, but could not confirm it's what happened in production from the available logs.
+- **Action:** Queued `Meta/review-queue/20260628-210600-drip-extract-reviewer-still-failing.md` (HIGH) — fix the log truncation first so the real error is visible, then fix the actual cause, then verify a real review-log.md entry lands before re-marking resolved.
+- **Status:** active, NOT resolved — the 2026-06-24 "fixed" classification was wrong. Lesson: code-reading a fix is not the same as verifying its output landed (review-log.md, in this case) — same lesson the 2026-01-25 review-log silence already taught once.
+
+## 2026-06-28 21:10 — New: refuse-if-dirty guard in run-retro.sh deadlocks against Implementer's by-design uncommitted engine self-heals
+- **Decided:** Flagged, not yet fixed (outside retro's edit boundary — `Meta/scripts/run-retro.sh`).
+- **Why this matters:** Implementer intentionally leaves engine-repo self-heals (`Meta/Agents/`, `Meta/scripts/`) uncommitted in two-repo mode, for human review. `run-retro.sh` refuses to run at all if the engine worktree is dirty. The two designs are in direct conflict: any day Implementer does its job correctly, the next day's retro (and Implementer, gated behind it) silently no-ops, every day, until a human manually commits. This produced a 3-day total outage of Retrospective + Implementer (2026-06-25 through 2026-06-27), broken only when the human committed `f9bc63e` on 2026-06-28.
+- **Action:** Queued `Meta/review-queue/20260628-210500-retro-implementer-3day-outage.md` (HIGH) with two candidate fixes (scope the dirty-check to ignore the paths Implementer intentionally leaves dirty; and/or escalate in daily-briefing once Retrospective's heartbeat is 2+ days stale).
+- **Check later:** If this recurs after a fix lands, check whether the fix only addressed one of the two designs (the ignore-list change) and not the visibility gap (the briefing escalation), or vice versa.
+- **Status:** active, unresolved.
+
 # Decisions Log
 
 <!-- Agents append decisions here using log-decision.sh -->

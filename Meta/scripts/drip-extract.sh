@@ -228,10 +228,15 @@ for note in "${QUEUE[@]}"; do
             # the 5-min alarm keeps a hung Reviewer call from stalling the pacing
             # budget. Non-fatal: QA failures don't undo the extraction.
             log "  -> running Reviewer QA pass..."
-            rev_out=$(perl -e 'alarm 300; exec @ARGV' /bin/bash "$SCRIPT_DIR/run-reviewer.sh" "$note" 2>&1)
+            rev_out_file=$(mktemp "/tmp/drip-extract-reviewer.XXXXXX")
+            AGENT_LOCK_RETRY=true AGENT_LOCK_RETRY_MAX=3 AGENT_LOCK_RETRY_DELAY=30 \
+                perl -e 'alarm 300; exec @ARGV' /bin/bash "$SCRIPT_DIR/run-reviewer.sh" "$note" >"$rev_out_file" 2>&1
             rev_rc=$?
             if [ "$rev_rc" -ne 0 ]; then
-                log "  -> Reviewer failed/timed out (rc=$rev_rc, non-fatal): $(printf '%s' "$rev_out" | tail -2 | tr '\n' ' ')"
+                log "  -> Reviewer failed/timed out (rc=$rev_rc, non-fatal). Full output: $rev_out_file"
+                log "  -> Reviewer output (last 15 lines): $(tail -15 "$rev_out_file" | tr '\n' ' ')"
+            else
+                rm -f "$rev_out_file"
             fi
             if ! agent_assert_no_forbidden_worktree_paths "drip-extract" \
                     Meta/Agents Meta/scripts Meta/research Thinking/Research \
