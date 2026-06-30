@@ -24,6 +24,7 @@ import asyncio
 import logging
 import json
 import re
+import hashlib
 import time
 import threading
 import importlib.util
@@ -2457,6 +2458,24 @@ def resolve_review_item(filepath, action="approved"):
 
 # --- Inline Keyboard Review Flow ---
 
+def review_item_callback_id(filename):
+    """Return a short, collision-free, callback-data-safe id for a review item.
+
+    Telegram caps callback_data at 64 bytes; the longest button prefix here is
+    'review_voicerec_' (16 bytes). Long review-queue filenames (e.g. the
+    ICE-enforcement item at 84 chars) overflow that, and Telegram rejects the
+    WHOLE keyboard with BUTTON_DATA_INVALID — breaking /review for every item,
+    not just the long one. We can't just truncate: two items can share both a
+    timestamp and a long common prefix (the two '20260624-205704-fathers-day-...
+    gift-detail-{card,coffee}' items differ only at the very end), so any prefix
+    scheme collides and would resolve the wrong item. A short hash of the full
+    name is unique and fixed-length. handle_review_callback matches by
+    recomputing this same id, so it never depends on the id being a substring of
+    the filename."""
+    base = filename[:-3] if filename.endswith('.md') else filename
+    return "rq" + hashlib.sha1(base.encode()).hexdigest()[:10]
+
+
 def build_review_keyboard(item_id, item_type="generic"):
     """Build inline keyboard buttons for a review item.
     Button labels adapt to item type so the user knows exactly what each button does."""
@@ -2656,14 +2675,20 @@ async def handle_review_callback(update: Update, context: ContextTypes.DEFAULT_T
     action = parts[1]
     item_id = parts[2]
 
-    # Find the matching review-queue file
+    # Find the matching review-queue file. Match on the recomputed hash id;
+    # fall back to a substring match so any buttons sent before this fix's
+    # restart (which carried the old full-filename id) still resolve.
     items = parse_review_queue()
     target = None
     for item in items:
-        fname = item.get("_filename", "").replace(".md", "")
-        if item_id in fname:
+        if review_item_callback_id(item.get("_filename", "")) == item_id:
             target = item
             break
+    if target is None:
+        for item in items:
+            if item_id in item.get("_filename", "").replace(".md", ""):
+                target = item
+                break
 
     if not target:
         await query.edit_message_text(f"Item not found: {item_id}")
@@ -2726,7 +2751,7 @@ async def push_pending_reviews(update, context):
         return 0
 
     for item in items:
-        item_id = item.get('_filename', '').replace('.md', '')
+        item_id = review_item_callback_id(item.get('_filename', ''))
         msg, item_type = format_review_message(item)
         keyboard = build_review_keyboard(item_id, item_type)
         await update.message.reply_text(msg, reply_markup=keyboard)
@@ -3122,7 +3147,7 @@ async def cmd_review(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         for item in actionable:
-            item_id = item.get('_filename', '').replace('.md', '')
+            item_id = review_item_callback_id(item.get('_filename', ''))
             msg, item_type = format_review_message(item)
             keyboard = build_review_keyboard(item_id, item_type)
             await update.message.reply_text(msg, reply_markup=keyboard)
