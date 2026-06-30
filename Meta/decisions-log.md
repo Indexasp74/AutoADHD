@@ -57,6 +57,19 @@ purpose: Operational and architectural decisions logged by agents
 - **Check later:** If this recurs after a fix lands, check whether the fix only addressed one of the two designs (the ignore-list change) and not the visibility gap (the briefing escalation), or vice versa.
 - **Status:** active, unresolved.
 
+## 2026-06-29 21:00 — Tripwire check: Pro-tier usage ceiling — still not triggered
+- **Checked:** All 91 `Meta/agent-feedback.jsonl` entries from this week — zero failure, error, rate-limit, or credit entries found. Holding.
+- **Status:** active, tripwire not triggered.
+
+## 2026-06-29 21:00 — Tripwire check: Reviewer pipeline coverage — still open, cannot confirm without output evidence
+- **Checked:** `Meta/AI-Reflections/review-log.md` — still 0 entries past 2026-01-25. The 2026-06-28 Implementer applied lock-retry + full-output logging fixes, but no drip-extract backlog run has occurred since (the queue has been empty on both 2026-06-28 and 2026-06-29). Cannot confirm whether the fix works without a real backlog note being processed and a new review-log.md entry appearing.
+- **Status:** active, still unconfirmed. Do NOT mark resolved without a new review-log.md entry as proof.
+
+## 2026-06-29 21:00 — Tripwire check: retro/Implementer 3-day outage (structural conflict) — CONFIRMED FIXED
+- **Checked:** `Meta/review-queue/20260628-210500-retro-implementer-3day-outage.md` — already marked `status: resolved` by Implementer (2026-06-28 same night). Implementer correctly identified the actual bug: the two-repo skip check was counting only engine-repo commits, so on any day with 0 engine commits (but vault-content commits), the retro silently skipped. Fix: sum commits from both repos. Confirmed working — today's retro ran successfully, and yesterday's (2026-06-28) also ran. Both days had zero engine-repo commits; vault-content commits kept the count non-zero.
+- **Check later:** If this recurs, both the ignore-list fix (scope dirty-worktree check to exclude Implementer's paths) AND the briefing escalation fix (name Retrospective specifically when it hasn't run in 2+ days) are still improvements that would reduce blast radius in a future recurrence — the 2026-06-28 Implementer only applied the root-cause fix, not the defensive visibility upgrade. But the structural conflict itself is now resolved.
+- **Status:** resolved. Closing this tripwire.
+
 # Decisions Log
 
 <!-- Agents append decisions here using log-decision.sh -->
