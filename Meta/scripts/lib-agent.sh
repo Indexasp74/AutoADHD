@@ -16,12 +16,24 @@ agent_git() {
     fi
 }
 
-# Guard against the silent-commit-loss class of bug. If VAULT_DIR is unset in an
-# agent's environment, agent_vault_dir falls back to $HOME/VaultSandbox and
-# agent_git then operates on the WRONG work-tree — every commit no-ops because
-# `git status` sees no changes against a tree the notes were never written to.
-# On 2026-07-01 this stranded ~10h of extractions uncommitted with zero visible
-# error (extraction "succeeded", HEAD never moved). Fail loud instead of silent.
+# Guard against the silent-commit-loss class of bug. Two known ways to trigger it:
+#   (a) VAULT_DIR unset -> agent_vault_dir falls back to $HOME/VaultSandbox, a
+#       work-tree with no vault content at all.
+#   (b) VAULT_GIT_DIR unset in a LONG-RUNNING daemon's environment (watch-voice-
+#       drop.sh, vault-bot.py — started once, env fixed at start time, unlike
+#       cron agents which re-source .env fresh via cron-wrapper.sh every run).
+#       agent_git then silently falls back to single-repo mode against the
+#       ENGINE repo's own .git, where Canon/ Thinking/ etc. are gitignored
+#       (they're meant to be tracked by the separate vault-content repo). Every
+#       commit call sees "nothing to stage" and returns 0 — no error anywhere.
+# Confirmed live 2026-07-01: watch-voice-drop.sh (PID 257857) had been running
+# since 2026-06-19 — 11 days before VAULT_GIT_DIR was added to .env — silently
+# discarding every voice-triggered extraction commit that whole time with zero
+# visible error (extraction "succeeded", HEAD never moved, Reviewer's own
+# HEAD~1..HEAD diff check saw nothing and skipped too, masking the gap further).
+# Both failure modes converge on the same real invariant: whatever repo
+# agent_git resolves to must NOT ignore Canon/. Check that directly rather than
+# just checking VAULT_GIT_DIR's presence, so a wrong-but-set path is caught too.
 agent_assert_vault_worktree() {
     if [ ! -d "$agent_vault_dir/Canon" ] || [ ! -d "$agent_vault_dir/Meta/scripts" ]; then
         echo "FATAL: agent work-tree does not look like the vault: '$agent_vault_dir'" >&2
@@ -32,6 +44,14 @@ agent_assert_vault_worktree() {
     fi
     if [ -n "${VAULT_GIT_DIR:-}" ] && [ ! -d "$VAULT_GIT_DIR" ]; then
         echo "FATAL: VAULT_GIT_DIR set but not found: '$VAULT_GIT_DIR'" >&2
+        return 1
+    fi
+    if agent_git check-ignore -q "$agent_vault_dir/Canon/People" 2>/dev/null; then
+        local resolved="single-repo mode (VAULT_GIT_DIR unset) at $agent_vault_dir/.git"
+        [ -n "${VAULT_GIT_DIR:-}" ] && resolved="VAULT_GIT_DIR=$VAULT_GIT_DIR"
+        echo "FATAL: Canon/ is git-ignored by the resolved repo ($resolved)." >&2
+        echo "  Every commit would silently vanish (git sees nothing to stage). Refusing to continue." >&2
+        "$agent_lib_dir/send-telegram.sh" "🔴 Agent misconfig: Canon/ is gitignored by the resolved repo ($resolved). Commits would silently vanish — run aborted. Likely a stale long-running daemon with an outdated env; restart it." 2>/dev/null || true
         return 1
     fi
     return 0
