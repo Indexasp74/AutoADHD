@@ -100,10 +100,13 @@ if [ "$PEOPLE_COUNT" -eq 0 ] && [ "$EVENTS_COUNT" -eq 0 ]; then
     echo "  WARNING: Stats look wrong (People=0, Events=0). Check VAULT_DIR=$VAULT_DIR"
 fi
 
-# Check if today's briefing was answered (look for voice memos referencing it)
+# Check if today's briefing was generated.
+# When OBSIDIAN_INBOX is set (.env), notes go to the real vault — not VAULT_DIR/Inbox/.
 BRIEFING_ENGAGED="unknown"
 if [ -f "Inbox/${DATE} - Daily Briefing.md" ]; then
     BRIEFING_ENGAGED="generated"
+elif [ -n "${OBSIDIAN_INBOX:-}" ] && [ -f "${OBSIDIAN_INBOX}/${DATE} - Daily Briefing.md" ]; then
+    BRIEFING_ENGAGED="generated (real vault)"
 fi
 
 # ── Agent health checks ──────────────────────────────────────────────

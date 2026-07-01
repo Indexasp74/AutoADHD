@@ -70,6 +70,24 @@ purpose: Operational and architectural decisions logged by agents
 - **Check later:** If this recurs, both the ignore-list fix (scope dirty-worktree check to exclude Implementer's paths) AND the briefing escalation fix (name Retrospective specifically when it hasn't run in 2+ days) are still improvements that would reduce blast radius in a future recurrence — the 2026-06-28 Implementer only applied the root-cause fix, not the defensive visibility upgrade. But the structural conflict itself is now resolved.
 - **Status:** resolved. Closing this tripwire.
 
+## 2026-06-30 21:00 — Tripwire check: Pro-tier usage ceiling — still not triggered
+- **Checked:** All 97 `Meta/agent-feedback.jsonl` entries this week — zero failure, error, rate-limit, or credit entries found. Holding.
+- **Status:** active, tripwire not triggered.
+
+## 2026-06-30 21:00 — Tripwire check: Reviewer pipeline coverage — REVISED: root cause is architectural, not just a drip-extract bug
+- **Revises:** the "Reviewer pipeline coverage" tripwire from 2026-06-28/06-29.
+- **What happened:** Evidence pass today showed that all 2026-06-30 extractions happened via VoicePipeline (real-time), not drip-extract. No Reviewer invocation followed either. `review-log.md` has 0 entries past 2026-01-25. Root cause is now understood more precisely: the Reviewer is wired only into `drip-extract.sh` (the backlog-recovery path), not into the VoicePipeline (the normal production path). In a healthy pipeline with no backlog, drip-extract finds nothing to do and the Reviewer never fires, regardless of how many notes were extracted via VoicePipeline. The 2026-06-28 drip-extract fixes (lock-retry, full logging) are correct but insufficient — they improve a rarely-triggered path while the main extraction path has no Reviewer at all.
+- **Action:** Queued `Meta/review-queue/20260630-210000-reviewer-missing-from-voice-pipeline.md` (HIGH) — wire Reviewer into `run-extractor.sh` or the VoicePipeline itself so every extraction triggers a review pass.
+- **Check later:** Do NOT mark resolved without a new `review-log.md` entry with a timestamp after 2026-06-30. This is the third time this tripwire has been extended — each time the fix was insufficient. Require output evidence, not code inspection.
+- **Status:** active, root cause revised. Previous fix was insufficient.
+
+## 2026-06-30 21:00 — New: human renames to Canon entries leave broken links in historical inbox Extracted blocks
+- **Decided:** Document as a known structural gap; flag at time of fix.
+- **What happened:** The Josh Gabel rename (2026-06-30, human-initiated) updated `Canon/People/Josh Gabel.md` and `Canon/Events/Emailed Josh Gabel Requesting Expertise and a Call.md` correctly, but left `Inbox/Voice/_extracted/2026-06-27 - Voice - tg2026-06-27152914.md`'s `## Extracted` block referencing both old names as dead links. Fixed inline by Retro 2026-06-30.
+- **Pattern:** Every time the human renames a Canon entry, any inbox note whose `## Extracted` block references the old name becomes a source of broken wikilinks. There is no cascade update mechanism.
+- **Check later:** If rename operations become more frequent (as the vault grows and names get corrected), consider a rename-cascade helper script: grep `Inbox/**/_extracted/` for the old name and replace with the new name as part of the rename workflow. Not urgent yet, but the gap will compound.
+- **Status:** active, known gap.
+
 # Decisions Log
 
 <!-- Agents append decisions here using log-decision.sh -->
