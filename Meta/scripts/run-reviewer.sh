@@ -29,8 +29,13 @@ agent_acquire_lock "vault-agent-pipeline"
 
 # Gather vault stats
 INBOX_COUNT=$(find Inbox/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-EXTRACTED_COUNT=$(grep -rl "status: extracted" Inbox/ 2>/dev/null | wc -l | tr -d ' ')
-UNPROCESSED_COUNT=$(grep -rl "status: inbox" Inbox/ 2>/dev/null | wc -l | tr -d ' ')
+# grep exits 1 when it matches nothing; under `set -euo pipefail` that 1
+# propagates and silently kills the whole Reviewer run before it does any QA.
+# In a healthy, fully-processed vault there are zero `status: inbox` notes, so
+# this fired on essentially every run — the real reason review-log.md had no
+# entries since 2026-01-25. Tolerate the no-match exit right at the grep.
+EXTRACTED_COUNT=$({ grep -rl "status: extracted" Inbox/ 2>/dev/null || true; } | wc -l | tr -d ' ')
+UNPROCESSED_COUNT=$({ grep -rl "status: inbox" Inbox/ 2>/dev/null || true; } | wc -l | tr -d ' ')
 PEOPLE_COUNT=$(find Canon/People/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 EVENTS_COUNT=$(find Canon/Events/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 CONCEPTS_COUNT=$(find Canon/Concepts/ -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
@@ -73,10 +78,10 @@ For EACH note:
 3. Check: did Extractor miss anyone mentioned by name?
 4. Check: are all wikilinks pointing to real notes? (use find to verify)
 5. Check: are locked fields intact? (compare frontmatter locked array vs values)
-6. Check: does the inbox note itself have `source_agent` / `source_date`, and do AI-created notes include them too?
+6. Check: does the inbox note itself have 'source_agent' / 'source_date', and do AI-created notes include them too?
 7. Check: are provenance markers (source field + inline comments with agent + timestamp) present?
 8. Check: does the note have an ## Extracted section? (MANDATORY per spec)
-9. Check: do any materially updated notes have stale or contradictory `updated:` / `status:` frontmatter?
+9. Check: do any materially updated notes have stale or contradictory 'updated:' / 'status:' frontmatter?
 10. Check: do all notes have emoji in H1 heading?
 
 ## STEP 4: Output
@@ -87,7 +92,7 @@ Append findings to Meta/AI-Reflections/review-log.md:
 ### Fixes Applied
 [list what you fixed directly]
 
-Fix simple issues yourself (broken links, recoverable missing source fields, missing emoji headings, explicit stale `updated:`/`status:` mismatches when the correct value is recoverable from the note evidence).
+Fix simple issues yourself (broken links, recoverable missing source fields, missing emoji headings, explicit stale 'updated:'/'status:' mismatches when the correct value is recoverable from the note evidence).
 Do NOT run git add or git commit. Leave changes in the worktree for the runner to validate, log, and commit."
 
 PROMPT="$PROMPT
