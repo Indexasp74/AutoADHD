@@ -16,6 +16,27 @@ agent_git() {
     fi
 }
 
+# Guard against the silent-commit-loss class of bug. If VAULT_DIR is unset in an
+# agent's environment, agent_vault_dir falls back to $HOME/VaultSandbox and
+# agent_git then operates on the WRONG work-tree — every commit no-ops because
+# `git status` sees no changes against a tree the notes were never written to.
+# On 2026-07-01 this stranded ~10h of extractions uncommitted with zero visible
+# error (extraction "succeeded", HEAD never moved). Fail loud instead of silent.
+agent_assert_vault_worktree() {
+    if [ ! -d "$agent_vault_dir/Canon" ] || [ ! -d "$agent_vault_dir/Meta/scripts" ]; then
+        echo "FATAL: agent work-tree does not look like the vault: '$agent_vault_dir'" >&2
+        echo "  VAULT_DIR='${VAULT_DIR:-<unset>}' VAULT_GIT_DIR='${VAULT_GIT_DIR:-<unset>}'" >&2
+        echo "  Commits would silently no-op against the wrong tree. Refusing to continue." >&2
+        "$agent_lib_dir/send-telegram.sh" "🔴 Agent misconfig: work-tree '$agent_vault_dir' is not the vault (VAULT_DIR unset?). Commits would silently vanish — run aborted." 2>/dev/null || true
+        return 1
+    fi
+    if [ -n "${VAULT_GIT_DIR:-}" ] && [ ! -d "$VAULT_GIT_DIR" ]; then
+        echo "FATAL: VAULT_GIT_DIR set but not found: '$VAULT_GIT_DIR'" >&2
+        return 1
+    fi
+    return 0
+}
+
 agent_require_commands() {
     local missing=0
     local cmd
@@ -216,6 +237,10 @@ agent_stage_and_commit() {
         echo "agent_stage_and_commit requires at least one pathspec." >&2
         return 1
     fi
+
+    # Validate the work-tree before trusting "nothing to stage" — a wrong tree
+    # makes that check lie and the commit vanish silently. See 2026-07-01 incident.
+    agent_assert_vault_worktree || return 1
 
     if [ -z "$(agent_git status --porcelain -- "$@")" ]; then
         return 0
