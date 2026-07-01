@@ -174,4 +174,28 @@ agent_stage_and_commit "[Extractor] extract: process $NOTE_COUNT note(s) [$TIMES
 
 "$SCRIPT_DIR/log-agent-feedback.sh" "Extractor" "extraction_complete" "Processed $NOTE_COUNT note(s)" "" "" "false" 2>/dev/null || true
 
+# Trigger a Reviewer QA pass for extraction paths that don't already run one
+# themselves. The voice pipeline (process-voice-memo.sh) and drip-extract both
+# invoke the Reviewer explicitly after calling us and set VAULT_AGENT_CONTEXT to
+# say so — skip those to avoid a double review. Every OTHER caller (Telegram
+# text notes via vault-bot, Advisor EXTRACT, retry-failed, direct CLI) sets no
+# context and would otherwise bypass QA entirely: that gap is why review-log.md
+# had no real entries for months despite extraction running fine. Non-fatal and
+# time-boxed (alarm 300, mirroring process-voice-memo.sh) so a slow or hung
+# Reviewer never blocks or fails the extraction. The pipeline lock is already
+# held (agent_acquire_lock exported VAULT_AGENT_LOCK_HELD=1), so the nested call
+# reuses it rather than contending for it.
+case "${VAULT_AGENT_CONTEXT:-}" in
+    voice-pipeline|drip-extract)
+        : ;;  # caller owns the Reviewer pass
+    *)
+        echo "[$TIMESTAMP] Triggering Reviewer QA pass..."
+        if perl -e 'alarm 300; exec @ARGV' /bin/bash "$SCRIPT_DIR/run-reviewer.sh"; then
+            echo "[$TIMESTAMP] Reviewer pass complete."
+        else
+            echo "[$TIMESTAMP] Reviewer pass failed/timed out (rc=$?, non-fatal)."
+        fi
+        ;;
+esac
+
 echo "[$TIMESTAMP] Extractor complete."
